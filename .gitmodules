@@ -1,0 +1,6 @@
+[submodule "library/third_party/ctemplate"]
+	path = library/third_party/ctemplate
+	url = git@github.com:benjibc/ctemplate.git
+[submodule "library/third_party/libevhtp"]
+	path = library/third_party/libevhtp
+	url = https://github.com/ellzey/libevhtp.git
