@@ -89,8 +89,6 @@ void processRequest(evhtp_request_t* request, void* arg) {
   evhtp_connection_t * conn;
   char tmp[1024];
 
-  printf("process_request(%p)\n", request);
-
   auto thread = get_request_thr(request);
   conn = evhtp_request_get_connection(request);
 
@@ -127,15 +125,14 @@ void processRequest(evhtp_request_t* request, void* arg) {
       );
     }
 
-    if (res.status() == L_OK) {
-      evhtp_send_reply(request, EVHTP_RES_OK);
-    } else {
-      evhtp_send_reply(request, res.status());
-    }
+    evhtp_send_reply(request, res.status());
+    // std::cout << methodName << " ";
+    // std::cout << request->uri->path->full;
+    // std::cout << " "<< res.status() << std::endl;
 
-  // caught some invalid argument error, probably invalid routes
+  // caught some runtime error, probably invalid routes
   // TODO: have a separate exceptiont type
-  } catch (const std::invalid_argument& e) {
+  } catch (const std::runtime_error & e) {
 
     // in case of a path exception, remove all the remaining data in the buffer
     // and send back all the data with regards to exception
@@ -186,7 +183,6 @@ void LServer::serveRequest(LCtrlHandler ctrlHandler, LReq& req, LRes& res) {
   LHandler pHandler = std::get<1>(ctrlHandler);
 
   // serve the request
-  std::cout << "Processing " << pCtrl << " "<< pHandler << std::endl;
   ((*pCtrl).*pHandler)(req, res);
 }
 

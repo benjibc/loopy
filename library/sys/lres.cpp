@@ -21,11 +21,11 @@
 namespace loopy {
 
 LRes::LRes(evhtp_request_t* request, ThreadLocal* threadLocal)
-  :_subroutine(false),
+  :_code(L_OK),
+  _subroutine(false),
    _request(request),
    _threadLocal(threadLocal),
-   _templateParams(new TemplateParams(request->uri->path->full)),
-   _code(200)
+   _templateParams(new TemplateParams(request->uri->path->full))
 {}
 
 void LRes::send(HTTP_STATUS_CODE code, std::string& content) {

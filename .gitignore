@@ -19,7 +19,11 @@
 *.exe
 *.out
 *.app
+*.bin
 
 # ycm files
 .ycm*
-./loopy.bin
+# vim files
+*.swp
+# third party generated files
+library/third_party/*

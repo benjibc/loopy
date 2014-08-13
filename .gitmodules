@@ -4,3 +4,6 @@
 [submodule "library/third_party/libevhtp"]
 	path = library/third_party/libevhtp
 	url = https://github.com/ellzey/libevhtp.git
+[submodule "library/third_party/googletest"]
+	path = library/third_party/googletest
+	url = git@github.com:svn2github/googletest.git

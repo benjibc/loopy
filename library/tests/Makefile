@@ -1,61 +1,3 @@
-CC=g++
-
-SRC=./library/sys
-CTRL_SRC=./app/controllers
-CTRL_SRC2+=./app/controllers/*
-MODEL_SRC+=./app/models
-MODEL_SRC2+=./app/models/*
-
-TGT=obj
-SOURCES=$(wildcard $(SRC)/*.cpp)
-SOURCES+=$(wildcard $(CTRL_SRC)/*.cpp)
-SOURCES+=./library/threadlocal.cpp ./library/threadshared.cpp
-OBJS=$(addprefix $(TGT)/, $(notdir $(SOURCES:.cpp=.o)))
-
-CFLAGS=-Wall -I./library/third_party/include -I./ -std=c++11
-LIBS=-lctemplate -levhtp -lpthread -levent
-
-LPATH= -L./library/third_party/lib
-
-all: server 
-
-$(TGT)/%.o: $(SRC)/%.cpp
-	$(CC) $(CFLAGS) $(LPATH) $(LIBS) -c $< -o $@
-
-#############################:
-# targets to build controller code and model code
-
-$(TGT)/%.o: $(CTRL_SRC)/%.cpp
-	$(CC) $(CFLAGS) $(LPATH) $(LIBS) -c $< -o $@
-
-$(TGT)/%.o: $(CTRL_SRC2)/%.cpp
-	$(CC) $(CFLAGS) $(LPATH) $(LIBS) -c $< -o $@
-
-$(TGT)/%.o: $(MODEL_SRC)/%.cpp
-	$(CC) $(CFLAGS) $(LPATH) $(LIBS) -c $< -o $@
-
-$(TGT)/%.o: $(MODEL_SRC2)/%.cpp
-	$(CC) $(CFLAGS) $(LPATH) $(LIBS) -c $< -o $@
-
-## end of target for controller and model code
-#################################
-
-$(TGT)/%.o: ./library/%.cpp
-	$(CC) $(CFLAGS) $(LPATH) $(LIBS) -c $< -o $@
-
-server: $(OBJS)
-	$(CC) $(CFLAGS) $(LPATH) $(OBJS) $(LIBS) -o loopy.bin main.cpp 
-
-run: all
-	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./library/third_party/lib; export LD_LIBRARY_PATH; ./loopy.bin
-
-init_repo:
-	cd library && sh fetch_libs.sh
-
-clean:
-	rm obj/*.o
-
-#########################################################################
 # A sample Makefile for building Google Test and using it in user
 # tests.  Please tweak it to suit your environment and project.  You
 # may want to move it to your project's root directory.
@@ -72,42 +14,49 @@ clean:
 
 # Points to the root of Google Test, relative to where this file is.
 # Remember to tweak this if you move this file.
-GTEST_DIR = ./library/third_party/googletest/
-
+GTEST_DIR = ../third_party/googletest
 
 # Where to find user code.
-USER_DIR = ./app/tests
-LPATH= -L./library/third_party/lib
+USER_DIR = ./lib_tests
+LPATH= -L../third_party/lib
 
-SRC=./library/sys/
-T_APPSRC=./app/*
-T_APPSRC2=./app/*/*
+TOPDIR=../
+SRC=../sys/
+APPSRC=./app/*
+APPSRC2=./app/*/*
 LIBS=-lctemplate -levhtp -lpthread -levent
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
 # the compiler doesn't generate warnings in Google Test headers.
-CPPFLAGS = -isystem $(GTEST_DIR)/include
+CPPFLAGS += -isystem $(GTEST_DIR)/include
 
 # Flags passed to the C++ compiler.
 CXXFLAGS += -g -Wall -Wextra -pthread 
-CXXFLAGS += -I./library/third_party/include -I./ -std=c++11 
+CXXFLAGS += -I../third_party/include -I../../ -std=c++11
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
-T_SOURCES=$(wildcard $(USER_DIR)/*.cpp)
-T_SOURCES+=$(wildcard $(SRC)/*.cpp)
-T_SOURCES+=$(wildcard $(T_APPSRC)/*.cpp)
-T_SOURCES+=$(wildcard $(T_APPSRC2)/*.cpp)
-T_SOURCES+=./library/threadlocal.cpp ./library/threadshared.cpp
+SOURCES=$(wildcard $(USER_DIR)/*.cpp)
+SOURCES+=$(wildcard $(SRC)/*.cpp)
+SOURCES+=$(wildcard $(APPSRC)/*.cpp)
+SOURCES+=$(wildcard $(APPSRC2)/*.cpp)
+SOURCES+=$(wildcard $(TOPDIR)/*.cpp)
 
-T_TGT=obj
-T_OBJS=$(addprefix $(T_TGT)/, $(notdir $(T_SOURCES:.cpp=.o)))
+TGT=obj
+OBJS=$(addprefix $(TGT)/, $(notdir $(SOURCES:.cpp=.o)))
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
 GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
                 $(GTEST_DIR)/include/gtest/internal/*.h
+
+# House-keeping build targets.
+
+all : unittest 
+
+clean :
+	rm -f $(OBJS) gtest.a gtest_main.a *.o
 
 # Builds gtest.a and gtest_main.a.
 
@@ -137,11 +86,22 @@ gtest_main.a : gtest-all.o gtest_main.o
 # gtest_main.a, depending on whether it defines its own main()
 # function.
 
-$(T_TGT)/%.o: $(USER_DIR)/%.cpp
+$(TGT)/%.o: $(USER_DIR)/%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) $(LIBS) -c $< -o $@
 
-unittest: $(T_OBJS) gtest_main.a
+$(TGT)/%.o: $(SRC)/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+$(TGT)/%.o: $(SRC)/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+$(TGT)/%.o: $(APPSRC)/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+$(TGT)/%.o: $(APPSRC2)/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+$(TGT)/%.o: $(TOPDIR)/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+
+unittest: $(OBJS) gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH)  $^ $(LIBS) -o $@.bin
 
-test: unittest
-	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./library/third_party/lib; export LD_LIBRARY_PATH; ./unittest.bin
+run: 
+	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../third_party/lib; export LD_LIBRARY_PATH; ./unittest.bin

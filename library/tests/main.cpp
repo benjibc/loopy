@@ -24,7 +24,7 @@ main() {
   sharedObj.name = str;
 
   // now do your initialization for the thread server
-  LServer& server = LServer::getInstance("127.0.0.1", 8000, 3);
+  LServer& server = LServer::getInstance("127.0.0.1", 8000, 2);
 
   // default example. Request with /hello
   server.get("/hello", &DefaultController::Hello);

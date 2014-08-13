@@ -16,9 +16,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 #include "./lrouter.h"
-namespace loopy{
+#include <string>
+namespace loopy {
 
 LRouter::LRouter()
 {}
 
+LCtrlHandler LRouter::getHandlerStrict(std::string key) {
+  auto routeIter = _routes.find(key);
+  if (routeIter != _routes.end()) {
+    return routeIter->second;
+  } else {
+    return std::make_tuple(
+      std::shared_ptr<LController>(nullptr),
+      (LHandler) nullptr
+    );
+  }
 }
+
+LCtrlHandler LRouter::getHandler(std::string key) {
+  auto routeIter = _routes.find(key);
+  if (routeIter != _routes.end()) {
+    return routeIter->second;
+  } else {
+    return _404CtrlHandler;
+  }
+}
+
+}  // namespace loopy

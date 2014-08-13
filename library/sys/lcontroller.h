@@ -21,6 +21,7 @@
 #include <evhtp.h>
 #include <unordered_map>
 #include <string>
+#include <memory>
 #include "./lreq.h"
 #include "./lres.h"
 

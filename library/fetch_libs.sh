@@ -5,15 +5,24 @@ cd ./third_party
 git submodule update --init --recursive
 
 # configure libevhtp
-cd ./libevhtp/build
-cmake .. -DCMAKE_INSTALL_PREFIX:PATH=$DIR/../../third_party
+cd ./libevhtp
+git pull origin master 
+git checkout master
+cd ./build
+cmake .. -DCMAKE_INSTALL_PREFIX:PATH=$DIR/../../third_party -DEVHTP_DISABLE_REGEX=ON
 cd ../../
 
 # configure ctemplate
-cd ./ctemplate-read-only
+cd ./ctemplate
+git pull origin master 
+git checkout master
 DIR="$(readlink -m "$(pwd)")"
 echo $DIR
 ./configure --prefix=$DIR/..
+cd ../
+
+# configure ctemplate
+cd ./ctemplate
 cd ../
 
 # build libevhtp
@@ -24,6 +33,7 @@ cd ../../
 
 
 # build ctemplate
-cd ./ctemplate-read-only
+cd ./ctemplate
 make
 make install
+cd ..
