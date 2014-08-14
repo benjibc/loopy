@@ -1,6 +1,7 @@
 #include "./default_controller.h"
 #include <ctemplate/template.h>
-#include <iostream>
+#include <boost/coroutine/coroutine.hpp>
+#include <string>
 
 namespace loopy {
 
@@ -8,7 +9,7 @@ DefaultController::DefaultController()
   :name("Benny")
 {}
 
-// handler that renders a file in the view, and return the result to the user 
+// handler that renders a file in the view, and return the result to the user
 void DefaultController::Hello(LReq& req, LRes& res) const {
   auto* tParams = res.templateParams();
 
@@ -22,7 +23,7 @@ void DefaultController::Hello(LReq& req, LRes& res) const {
 
   // render the list section. The example shows that you can have repleated
   // sections
-  for(int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++) {
     auto section_dict = tParams->AddSectionDictionary("LIST_EXAMPLE");
     section_dict->SetValue("LIST_KEY", "KEY");
     section_dict->SetValue("LIST_VALUE", "VALUE");
@@ -35,7 +36,6 @@ void DefaultController::Hello(LReq& req, LRes& res) const {
 
 // default handler for file not found
 void DefaultController::FileNotFound(LReq& req, LRes& res) const {
-  
   std::string notFound = "01234567890";
   res.send(L_NOT_FOUND, notFound);
 }
@@ -46,10 +46,9 @@ void DefaultController::FileNotFound(LReq& req, LRes& res) const {
 // /complex/hello?id=2&name=foobar
 void DefaultController::ComplexHello(LReq& req, LRes& res) const {
   auto* tParams = res.templateParams();
-  
+
   auto& queryParams = req.queryParams();
   std::string ID = queryParams["id"];
-  std::string username = queryParams["username"];
 
   tParams->SetValue("ID", ID);
   for (int i = 0; i < 3; i++) {
@@ -61,7 +60,7 @@ void DefaultController::ComplexHello(LReq& req, LRes& res) const {
   // next("INTERN", "/section2/hello", req, res);
 
   tParams->SetValue("CTRLLR", name);
-  
+
   res.render("default/master.tpl");
 }
 
@@ -85,4 +84,4 @@ void DefaultController::SubComplexHello2(LReq& req, LRes& res) const {
   tParams->SetValue("USERNAME", name);
 }
 
-}
+}  // namespace loopy

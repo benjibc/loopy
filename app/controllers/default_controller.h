@@ -3,6 +3,7 @@
 
 #include <library/sys/lcontroller.h>
 #include <string>
+#include <boost/coroutine/coroutine.hpp>
 
 namespace loopy {
 
