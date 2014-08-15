@@ -49,36 +49,36 @@ class LServer {
   LCtrlHandler getCtrlHandler(const char* method, const char* path);
   LCtrlHandler getCtrlHandlerStrict(const char* method, const char* path);
 
-  static void serveRequest(LCtrlHandler ctrlHandler, LReq& req, LRes& res);
+  static void serveRequest(LCtrlHandler ctrlHandler, pReq req);
   static void invalidControlHandler(LCtrlHandler ctrlHandler);
 
   // list of HTTP Methods to use as routing functions
   template<class T>
-  void post(const char* path, void (T::*handler)(LReq&, LRes&) const);
+  void post(const char* path, void (T::*handler)());
 
   template<class T>
-  void get(const char* path, void (T::*handler)(LReq&, LRes&) const);
+  void get(const char* path, void (T::*handler)());
 
   template<class T>
   void custom(
     const char* method,
     const char* path,
-    void (T::*handler)(LReq&, LRes&) const
+    void (T::*handler)()
   );
 
   // intern is not a valid HTTP request method. It is used for dedicated
   // internal handlers
   template<class T>
-  void intern(const char* path, void (T::*handler)(LReq&, LRes&) const);
+  void intern(const char* path, void (T::*handler)());
 
   // setters for the special handlers when something goes wrong
   // these handlers are used when File Not Found occurs or when there
   // is a server error
   template<class T>
-  void setHandlerFor404(void (T::*handler)(LReq&, LRes&) const);
+  void setHandlerFor404(void (T::*handler)());
 
   template<class T>
-  void setHandlerFor500(void (T::*handler)(LReq&, LRes&) const);
+  void setHandlerFor500(void (T::*handler)());
 
  private:
   // lock the constructor to make sure the server is a singleton
@@ -109,12 +109,12 @@ void processRequest(evhtp_request_t* request, void* arg);
 void initializeThread(evhtp_t* htp, evthr_t* thread, void* arg);
 
 template<class T>
-void LServer::post(const char* path, void (T::*handler)(LReq&, LRes&) const) {
+void LServer::post(const char* path, void (T::*handler)()) {
   _router.addRoute("POST", path, handler);
 }
 
 template<class T>
-void LServer::get(const char* path, void (T::*handler)(LReq&, LRes&) const) {
+void LServer::get(const char* path, void (T::*handler)()) {
   _router.addRoute("GET", path, handler);
 }
 
@@ -122,23 +122,23 @@ template<class T>
 void LServer::custom(
   const char* method,
   const char* path,
-  void (T::*handler)(LReq&, LRes&) const
+  void (T::*handler)()
 ) {
   _router.addRoute(method, path, handler);
 }
 
 template<class T>
-void LServer::intern(const char* path, void (T::*handler)(LReq&, LRes&) const) {
+void LServer::intern(const char* path, void (T::*handler)()) {
   _router.addRoute("INTERN", path, handler);
 }
 
 template<class T>
-void LServer::setHandlerFor404(void (T::*handler)(LReq&, LRes&) const) {
+void LServer::setHandlerFor404(void (T::*handler)()) {
   _router.add404Ctrllr(handler);
 }
 
 template<class T>
-void LServer::setHandlerFor500(void (T::*handler)(LReq&, LRes&) const) {
+void LServer::setHandlerFor500(void (T::*handler)()) {
   _router.add500Ctrllr(handler);
 }
 

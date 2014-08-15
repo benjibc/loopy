@@ -21,42 +21,42 @@
 
 namespace loopy {
 
-LReq::LReq(evhtp_request_t* request, ThreadLocal* threadLocal)
-  :_request(request), _threadLocal(threadLocal)
+LReq::LReq(pReq request)
+  :request_(request)
 {}
 
 const char* LReq::path() const {
-  if (_request) {
-    return _request->uri->path->full;
+  if (request_) {
+    return request_->uri->path->full;
   } else {
     return nullptr;
   }
 }
 
 const char* LReq::filename() const {
-  if (_request) {
-    return _request->uri->path->file;
+  if (request_) {
+    return request_->uri->path->file;
   } else {
     return nullptr;
   }
 }
 
 htp_scheme LReq::scheme() const {
-  return _request->uri->scheme;
+  return request_->uri->scheme;
 }
 
 LReq::stringKV& LReq::queryParams() {
-  if (_queryParams.empty()) {
-    _queryParams = evhtpKVsToMap(_request->uri->query);
+  if (query_params_.empty()) {
+    query_params_= evhtpKVsToMap(request_->uri->query);
   }
-  return _queryParams;
+  return query_params_;
 }
 
 LReq::stringKV& LReq::httpHeaders() {
-  if (_httpHeaders.empty()) {
-    _httpHeaders = evhtpKVsToMap(_request->headers_in);
+  if (http_headers_.empty()) {
+    http_headers_= evhtpKVsToMap(request_->headers_in);
   }
-  return _httpHeaders;
+  return http_headers_;
 }
 
 LReq::stringKV LReq::evhtpKVsToMap(evhtp_kvs_t* kv) {
@@ -78,13 +78,16 @@ LReq::stringKV LReq::evhtpKVsToMap(evhtp_kvs_t* kv) {
   return map;
 }
 
+pReq LReq::rawReq() {
+  return request_;
+}
 
-void LReq::addToCallStack(std::string nextPath) {
-  _requestStack.push_back(nextPath);
+void LReq::addToCallStack(std::string next_path) {
+  request_stack_.push_back(next_path);
 }
 
 const std::vector<std::string>& LReq::callStack() const {
-  return _requestStack;
+  return request_stack_;
 }
 
 } // namespace loopy

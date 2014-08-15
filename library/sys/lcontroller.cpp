@@ -24,14 +24,14 @@
 
 namespace loopy {
 
-LController::LController() {}
+LController::LController(pReq req)
+  : req_(req), res_(req)
+{}
 void LController::next(
   const char* method,
   const char* next,
-  const char* templateName,
-  LReq& req,
-  LRes& res
-) const {
+  const char* templateName
+) {
   LServer& server = LServer::getInstance();
   auto ctrlHandler = server.getCtrlHandlerStrict(method, next);
 
@@ -44,7 +44,7 @@ void LController::next(
 
     // populate the routing stack so when an error occurs, the user will be
     // able to see it
-    auto callStack = req.callStack();
+    auto callStack = req_.callStack();
     for (auto it = callStack.rbegin(); it != callStack.rend(); it++) {
       reason += *it + "\n";
     }
@@ -53,24 +53,32 @@ void LController::next(
   }
 
   // now we know the controller is valid, serve the request
-  ctemplate::TemplateDictionary* tParams = res.templateParams();
-  req.addToCallStack(route);
+  ctemplate::TemplateDictionary* tParams = res_.templateParams();
+  req_.addToCallStack(route);
 
-  res.subroutine(true);
+  res_.subroutine(true);
   ctemplate::TemplateDictionary* dict = tParams->AddIncludeDictionary(templateName);
 
-  res.swapTemplateParams(dict);
-  LServer::serveRequest(ctrlHandler, req, res);
-  res.swapTemplateParams(dict);
+  res_.swapTemplateParams(dict);
+  LServer::serveRequest(ctrlHandler, req_.rawReq());
+  res_.swapTemplateParams(dict);
 
-  res.subroutine(false);
-  std::string templateFilename = res.getIncludedTemplateFilename();
+  res_.subroutine(false);
+  std::string templateFilename = res_.getIncludedTemplateFilename();
   dict->SetFilename(templateFilename);
 }
 
 bool LController::invalidControlHandler(LCtrlHandler ctrlHandler) {
   return (std::get<0>(ctrlHandler) == nullptr)
          || (std::get<1>(ctrlHandler) == nullptr);
+}
+
+LRes& LController::res() {
+  return res_;
+}
+
+pReq LController::rawReq() {
+  return req_.rawReq();
 }
 
 } // namespace loopy

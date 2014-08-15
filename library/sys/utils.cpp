@@ -17,6 +17,8 @@
 // SOFTWARE.
 #include "./utils.h"
 
+namespace loopy {
+
 const char* getMethodName(htp_method method) {
   switch (method) {
     case htp_method_GET:
@@ -56,3 +58,5 @@ const char* getMethodName(htp_method method) {
   }
   return "";
 }
+
+} // namespace loopy

@@ -89,10 +89,10 @@ void processRequest(evhtp_request_t* request, void* arg) {
   evhtp_connection_t * conn;
   char tmp[1024];
 
-  auto thread = get_request_thr(request);
+  // auto thread = get_request_thr(request);
   conn = evhtp_request_get_connection(request);
 
-  auto threadLocal = static_cast<ThreadLocal*>(evthr_get_aux(thread));
+  // auto threadLocal = static_cast<ThreadLocal*>(evthr_get_aux(thread));
 
   sin = (struct sockaddr_in *)conn->saddr;
 
@@ -104,42 +104,13 @@ void processRequest(evhtp_request_t* request, void* arg) {
   std::string methodName = getMethodName(method);
 
   // init Req and Res object
-  LReq req(request, threadLocal);
-  LRes res(request, threadLocal);
-
   auto ctrlHandler = pServer->getCtrlHandler(methodName.c_str(), URI->path->full);
 
   evhtp_request_pause(request);
 
-  try {
-    LServer::serveRequest(ctrlHandler, req, res);
+    LServer::serveRequest(ctrlHandler, request);
 
-    // put the output of res into the request object and finish off
-    if (res.isModified()) {
 
-      evbuffer_add(request->buffer_out, res.getContent(), res.contentSize());
-
-      evhtp_headers_add_header(
-        request->headers_out,
-        evhtp_header_new("Content-Type", "text/html", 0, 0)
-      );
-    }
-
-    evhtp_send_reply(request, res.status());
-    // std::cout << methodName << " ";
-    // std::cout << request->uri->path->full;
-    // std::cout << " "<< res.status() << std::endl;
-
-  // caught some runtime error, probably invalid routes
-  // TODO: have a separate exceptiont type
-  } catch (const std::runtime_error & e) {
-
-    // in case of a path exception, remove all the remaining data in the buffer
-    // and send back all the data with regards to exception
-    std::string message = e.what();
-    evbuffer_add(request->buffer_out, message.c_str(), message.size());
-    evhtp_send_reply(request, L_SERVER_ERROR);
-  }
   evhtp_request_resume(request);
 }
 
@@ -175,15 +146,40 @@ unsigned LServer::getNumCPU() {
   return std::thread::hardware_concurrency();
 }
 
-void LServer::serveRequest(LCtrlHandler ctrlHandler, LReq& req, LRes& res) {
-  // for now assume URI contains no GET parameters and can be used for routing
-  // directly
+void LServer::serveRequest(LCtrlHandler ctrlHandler, pReq request) {
+  try {
 
-  std::shared_ptr<LController> pCtrl = std::get<0>(ctrlHandler);
-  LHandler pHandler = std::get<1>(ctrlHandler);
+    ctrllerFactoryFunc factory = std::get<0>(ctrlHandler);
+    std::shared_ptr<LController> pCtrl((*factory)(request));
+    LHandler pHandler = std::get<1>(ctrlHandler);
 
-  // serve the request
-  ((*pCtrl).*pHandler)(req, res);
+    // execute the request
+    ((*pCtrl).*pHandler)();
+
+    // put the output of res into the request object and finish off
+    auto& res = pCtrl->res();
+    if (res.isModified()) {
+
+      evbuffer_add(request->buffer_out, res.getContent(), res.contentSize());
+
+      evhtp_headers_add_header(
+        request->headers_out,
+        evhtp_header_new("Content-Type", "text/html", 0, 0)
+      );
+    }
+
+    evhtp_send_reply(request, res.status());
+
+  // caught some runtime error, probably invalid routes
+  // TODO: have a separate exceptiont type
+  } catch (const std::runtime_error & e) {
+
+    // in case of a path exception, remove all the remaining data in the buffer
+    // and send back all the data with regards to exception
+    std::string message = e.what();
+    evbuffer_add(request->buffer_out, message.c_str(), message.size());
+    evhtp_send_reply(request, L_SERVER_ERROR);
+  }
 }
 
 

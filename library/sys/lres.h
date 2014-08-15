@@ -35,7 +35,7 @@ class LRes{
   typedef ctemplate::TemplateDictionary TemplateParams;
 
  public:
-  LRes(evhtp_request_t* request, ThreadLocal* threadLocal);
+  explicit LRes(pReq request);
   ~LRes();
 
   // once_off writing with a string content; suitable for all the HTTP
@@ -73,7 +73,7 @@ class LRes{
   std::string       _includeFilename; // name for the file included
 
   // check if the string content was ever modified
-  evhtp_request_t*  _request;
+  pReq              _request;
   ThreadLocal*      _threadLocal;
   TemplateParams*   _templateParams;
 };

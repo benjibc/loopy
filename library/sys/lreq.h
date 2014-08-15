@@ -23,6 +23,7 @@
 #include <vector>
 #include <string>
 #include "../threadlocal.h"
+#include "./utils.h"
 
 namespace loopy {
 
@@ -35,7 +36,7 @@ class LReq {
   typedef std::map<std::string, std::string> stringKV;
 
  public:
-  LReq(evhtp_request_t* request, ThreadLocal* threadLocal);
+  explicit LReq(pReq request);
 
   // accessor for different properties
   const char* path() const;
@@ -57,25 +58,26 @@ class LReq {
   void addToCallStack(std::string nextPath);
   const std::vector<std::string>& callStack() const;
 
+  pReq rawReq();
+
  private:
-  evhtp_request_t*  _request;
-  ThreadLocal*      _threadLocal;
+  pReq request_;
 
   // these 2 parameters will not be evalauted when the request is received
   // only when the accessor for the class is called, the parameter will
   // be evaluated
-  stringKV          _queryParams;
-  stringKV          _bodyParams;
-  stringKV          _httpHeaders;
+  stringKV          query_params_;
+  stringKV          body_params_;
+  stringKV          http_headers_;
 
   // for hierarchical calling
-  std::string       _next;
+  std::string       next_;
 
   // helper function that turns string KV to map of key value pairs
   stringKV          evhtpKVsToMap(evhtp_kvs_t* kv);
 
   // function call trace
-  std::vector<std::string> _requestStack;
+  std::vector<std::string> request_stack_;
 };
 
 } // namespace loopy

@@ -28,7 +28,7 @@ LCtrlHandler LRouter::getHandlerStrict(std::string key) {
     return routeIter->second;
   } else {
     return std::make_tuple(
-      std::shared_ptr<LController>(nullptr),
+      (ctrllerFactoryFunc)(nullptr),
       (LHandler) nullptr
     );
   }

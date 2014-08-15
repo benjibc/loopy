@@ -33,6 +33,7 @@ namespace loopy {
 class LRouter{
  private:
   typedef std::unordered_map<std::string, LCtrlHandler> RoutingMap;
+  typedef LController*(*ctrllerFactoryFunc)(pReq req);
 
  public:
   LRouter();
@@ -46,54 +47,55 @@ class LRouter{
   LCtrlHandler getHandlerStrict(std::string key);
 
   template<class T>
-  void add404Ctrllr(void (T::*handler)(LReq&, LRes&) const) {
-    auto pController = getOrAddController(handler);
+  void add404Ctrllr(void (T::*handler)()) {
+    auto pController = getOrAddControllerFactory(handler);
     _404CtrlHandler = std::make_tuple(pController, (LHandler) handler);
   }
 
   template<class T>
-  void add500Ctrllr(void (T::*handler)(LReq&, LRes&) const) {
-    auto pController = getOrAddController(handler);
+  void add500Ctrllr(void (T::*handler)()) {
+    auto pController = getOrAddControllerFactory(handler);
     _500CtrlHandler = std::make_tuple(pController, (LHandler) handler);
   }
 
+
+  /// add the lambda function that would return the new instance of T, taking
+  /// pReq as a parameter
   template<class T>
-  ctrllrPtr getOrAddController(void (T::*handler)(LReq&, LRes&) const) {
+  ctrllerFactoryFunc getOrAddControllerFactory(void (T::*handler)()) {
 
     if (handler == nullptr) {
       throw std::runtime_error("handler is a nullptr");
     }
-
     auto typeKey = std::type_index(typeid(T));
-    auto ctrlIter = _controllers.find(typeKey);
+    auto ctrlFactoryIter = ctrller_factories_.find(typeKey);
 
-    // if the controller does not exist in the map, initialize a controller
+    // if the factory does not exist in the map, store the factory method into
+    // the key
     // and store the pointer; else retrieve the controller pointer
-    std::shared_ptr<LController> pController(nullptr);
-
-    if (ctrlIter == _controllers.end()) {
-      pController = std::shared_ptr<LController>(new T());
-      _controllers[typeKey] = pController;
+    if (ctrlFactoryIter == ctrller_factories_.end()) {
+      auto factory = [] (pReq req) -> LController* {
+        return new T(req);
+      };
+      ctrller_factories_[typeKey] = factory;
+      return factory;
 
     } else { // key does exist
-      pController = ctrlIter->second;
+      return ctrlFactoryIter->second;
     }
-
-    return pController;
   }
 
   template<class T>
   void addRoute(
     const char* method,
     const char* path,
-    void (T::*handler)(LReq&, LRes&) const
+    void (T::*handler)()
   ) {
-    auto pController = getOrAddController(handler);
-
+    auto ctrlFactory = getOrAddControllerFactory(handler);
     std::string key = method;
     key += "::";
     key += path;
-    _routes[key] = std::make_tuple(pController, (LHandler) handler);
+    _routes[key] = std::make_tuple(ctrlFactory, (LHandler) handler);
   }
 
  private:
@@ -103,7 +105,7 @@ class LRouter{
 
   // use of type_index; refer to
   // http://en.cppreference.com/w/cpp/types/type_index
-  std::unordered_map<std::type_index, ctrllrPtr> _controllers;
+  std::unordered_map<std::type_index, ctrllerFactoryFunc> ctrller_factories_;
 
   // special handlers
   LCtrlHandler  _404CtrlHandler;

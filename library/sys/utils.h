@@ -20,6 +20,10 @@
 
 #include <evhtp.h>
 
+namespace loopy {
+
+typedef evhtp_request_t* pReq;
+
 enum HTTP_STATUS_CODE {
   L_OK   = EVHTP_RES_200,
   L_300  = EVHTP_RES_300,
@@ -101,5 +105,7 @@ enum HTTP_STATUS_CODE {
 // return "Bandwidth Limit Exceeded";
 };
 const char* getMethodName(htp_method method);
+
+}  // namespace loopy
 
 #endif  // LIBRARY_SYS_UTILS_H_

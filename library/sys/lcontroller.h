@@ -29,22 +29,42 @@ namespace loopy {
 class LServer;
 class LController;
 
-typedef void (LController::*LHandler)(LReq&, LRes&) const;
-typedef std::shared_ptr<LController> ctrllrPtr;
-typedef std::tuple<ctrllrPtr, LHandler> LCtrlHandler;
+typedef void (LController::*LHandler)();
+typedef LController*(*ctrllerFactoryFunc)(pReq req);
+typedef std::shared_ptr<LController> CtrllrPtr;
+typedef std::tuple<ctrllerFactoryFunc, LHandler> LCtrlHandler;
 
+/// Controller class that every custom made controller should inherit from.
+/// Every time a request is made, a new controller will be created, so make
+/// sure if you want to do some change to the controller and want to retain
+/// the change, make sure you operate on _threadData
 class LController {
  public:
-  LController();
+  /// constructor that takes libevhtp's request as a parameter
+  LController() = delete;
+  explicit LController(pReq req);
   virtual ~LController() = default;
+
+  /// calls for the next controller
   void next(
     const char* method,
     const char* next,
-    const char* templateName,
-    LReq& req,
-    LRes& res
-  ) const;
+    const char* templateName
+  );
   static bool invalidControlHandler(LCtrlHandler ctrlHandler);
+  /// function to call to initialize the thread
+  // virtual void initializeThread() const;
+
+  /// returns a reference to the response object
+  LRes& res();
+  /// get the raw libevhtp request object
+  pReq  rawReq();
+
+ protected:
+  /// request variable for the controller
+  LReq req_;
+  /// response variable for the controller
+  LRes res_;
 };
 
 

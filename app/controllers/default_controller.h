@@ -1,28 +1,27 @@
-#ifndef LOOPY_APP_DEFAULT_CONTROLLER
-#define LOOPY_APP_DEFAULT_CONTROLLER
+#ifndef APP_CONTROLLERS_DEFAULT_CONTROLLER_H_
+#define APP_CONTROLLERS_DEFAULT_CONTROLLER_H_
 
 #include <library/sys/lcontroller.h>
 #include <string>
-#include <boost/coroutine/coroutine.hpp>
 
 namespace loopy {
 
 class DefaultController: public LController {
-  public:
-    DefaultController();
-    virtual ~DefaultController() = default;
+ public:
+  explicit DefaultController(pReq req);
+  virtual ~DefaultController() = default;
 
-    // handlers for this class
-    void Hello              (LReq& req, LRes& res) const;
-    void FileNotFound       (LReq& req, LRes& res) const;
-    void ComplexHello       (LReq& req, LRes& res) const;
-    void SubComplexHello    (LReq& req, LRes& res) const;
-    void SubComplexHello2   (LReq& req, LRes& res) const;
+  // handlers for this class
+  void Hello();
+  void FileNotFound();
+  void ComplexHello();
+  void SubComplexHello();
+  void SubComplexHello2();
 
-  private:
-    std::string name;
+ private:
+  std::string name;
 };
 
-}
+} // namespace loopy
 
-#endif
+#endif  // APP_CONTROLLERS_DEFAULT_CONTROLLER_H_

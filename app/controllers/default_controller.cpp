@@ -5,13 +5,13 @@
 
 namespace loopy {
 
-DefaultController::DefaultController()
-  :name("Benny")
+DefaultController::DefaultController(pReq req)
+  :LController(req), name("Benny")
 {}
 
 // handler that renders a file in the view, and return the result to the user
-void DefaultController::Hello(LReq& req, LRes& res) const {
-  auto* tParams = res.templateParams();
+void DefaultController::Hello() {
+  auto* tParams = res_.templateParams();
 
   // render the USER_INFO section. The example shows that an section can be
   // rendered only if you enable it explicitly
@@ -31,55 +31,55 @@ void DefaultController::Hello(LReq& req, LRes& res) const {
 
   // render the footer section. The example shows a simple Key-Value pair
   tParams->SetValue("FOOTER", "This is the footer section");
-  res.render("default/example.tpl");
+  res_.render("default/example.tpl");
 }
 
 // default handler for file not found
-void DefaultController::FileNotFound(LReq& req, LRes& res) const {
+void DefaultController::FileNotFound() {
   std::string notFound = "01234567890";
-  res.send(L_NOT_FOUND, notFound);
+  res_.send(L_NOT_FOUND, notFound);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // handler that renders a master template which includes a subtemplate, and also
 // uses queryParam from the user. Request the endpoint in the following format
 // /complex/hello?id=2&name=foobar
-void DefaultController::ComplexHello(LReq& req, LRes& res) const {
-  auto* tParams = res.templateParams();
+void DefaultController::ComplexHello() {
+  auto* tParams = res_.templateParams();
 
-  auto& queryParams = req.queryParams();
+  auto& queryParams = req_.queryParams();
   std::string ID = queryParams["id"];
 
   tParams->SetValue("ID", ID);
   for (int i = 0; i < 3; i++) {
-    next("GET", "/section/hello", "TEMPLATE_1", req, res);
+    next("GET", "/section/hello", "TEMPLATE_1");
   }
-  next("INTERN", "/section/hello2", "TEMPLATE_2", req, res);
+  next("INTERN", "/section/hello2", "TEMPLATE_2");
 
   // try and see what happens if you invoke the wrong path
   // next("INTERN", "/section2/hello", req, res);
 
   tParams->SetValue("CTRLLR", name);
 
-  res.render("default/master.tpl");
+  res_.render("default/master.tpl");
 }
 
 ////////////////////////////////////////////////////////////////////////////
 // handles a section of template. This handler is exposed to the public
-void DefaultController::SubComplexHello(LReq& req, LRes& res) const {
+void DefaultController::SubComplexHello() {
 
-  auto* tParams = res.templateParams();
-  auto& queryParams = req.queryParams();
+  auto* tParams = res_.templateParams();
+  auto& queryParams = req_.queryParams();
 
   tParams->SetValue("USERNAME", queryParams["username"]);
-  res.render("default/section.tpl");
+  res_.render("default/section.tpl");
 }
 
 //////////////////////////////////////////////////////////////////
 // handles another section of the template. This handler is not exposed to the
 // public
-void DefaultController::SubComplexHello2(LReq& req, LRes& res) const {
-  auto* tParams = res.templateParams();
+void DefaultController::SubComplexHello2() {
+  auto* tParams = res_.templateParams();
 
   tParams->SetValue("USERNAME", name);
 }

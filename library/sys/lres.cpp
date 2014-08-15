@@ -15,17 +15,16 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-#include "lres.h"
 #include <iostream>
+#include "./lres.h"
 
 namespace loopy {
 
-LRes::LRes(evhtp_request_t* request, ThreadLocal* threadLocal)
-  :_code(L_OK),
-  _subroutine(false),
-   _request(request),
-   _threadLocal(threadLocal),
-   _templateParams(new TemplateParams(request->uri->path->full))
+LRes::LRes(pReq request)
+  : _code(L_OK),
+    _subroutine(false),
+    _request(request),
+    _templateParams(new TemplateParams(request->uri->path->full))
 {}
 
 void LRes::send(HTTP_STATUS_CODE code, std::string& content) {
