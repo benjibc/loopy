@@ -2,6 +2,7 @@
 #define APP_CONTROLLERS_DEFAULT_CONTROLLER_H_
 
 #include <library/sys/lcontroller.h>
+//#include <drivers/loopy-redis/loopy-redis.h>
 #include <string>
 
 namespace loopy {
@@ -18,6 +19,10 @@ class DefaultController: public LController {
   void ComplexHello();
   void SubComplexHello();
   void SubComplexHello2();
+
+  void initializeThread(evthr_t* thread) const;
+
+  // static void initializeFromThread(evhtp_t* thread);
 
  private:
   std::string name;

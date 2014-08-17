@@ -1,13 +1,19 @@
 #include "./default_controller.h"
 #include <ctemplate/template.h>
-#include <boost/coroutine/coroutine.hpp>
+// #include <drivers/loopy-redis/loopy-redis.h>
 #include <string>
+#include <iostream>
 
 namespace loopy {
 
 DefaultController::DefaultController(pReq req)
-  :LController(req), name("Benny")
+  : LController(req),
+    name("Benny")
 {}
+
+void DefaultController::initializeThread(evthr_t* thread) const {
+//  redis_ = new LoopyRedis(thread, "0.0.0.0", 6379);
+}
 
 // handler that renders a file in the view, and return the result to the user
 void DefaultController::Hello() {
@@ -44,14 +50,25 @@ void DefaultController::FileNotFound() {
 // uses queryParam from the user. Request the endpoint in the following format
 // /complex/hello?id=2&name=foobar
 void DefaultController::AsyncHello() {
-  dispatch([this] () {
+
+  dispatch([this]() {
+    int i = 0;
+    return i;
+  }).next([this] () {
+
     i++;
     std::cout << i++ << std::endl;
-  }).next([this] () {
+    return "hello";
+  })
+  .next([this] (std::string helloStr) {
+
     std::cout << 2 + i<< std::endl;
-  }).next([this] () {
+  })
+  .next([this] () {
+
     std::cout << 2 + i<< std::endl;
   });
+
   std::string rando = "01234567890";
   res_.send(L_OK, rando);
 }

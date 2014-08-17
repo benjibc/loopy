@@ -57,9 +57,6 @@ class LAsync : public LAsyncBase {
   typedef LambdaType Lambda;
 
  public:
-  /// check if there are any callbacks in the LAsync object
-  bool empty() const;
-
   /// execute the next callback on stack if there is any
   void operator() () {
     callback_();
@@ -70,13 +67,31 @@ class LAsync : public LAsyncBase {
   LambdaType    callback_;
 };
 
+/// Chain of Asyncs to call
 class LAsyncChain {
  public:
+  /// start with the first element of the async queue
+  template<typename NextLambdaType>
+  explicit LAsyncChain(NextLambdaType lambda) {
+
+    auto ptr = LAsyncBasePtr(new LAsync<NextLambdaType>(lambda));
+    callbacks_.push_back(ptr);
+  }
+
+  /// add another element in the async queue
   template<typename NextLambdaType>
   LAsyncChain& next(NextLambdaType lambda) {
+
     auto ptr = LAsyncBasePtr(new LAsync<NextLambdaType>(lambda));
     callbacks_.push_back(ptr);
     return *this;
+  }
+
+  bool operator()() {
+    std::for_each(callbacks_.begin(), callbacks_.end(), [] (LAsyncBasePtr asc) {
+      (*asc)();
+    });
+    return true;
   }
 
  private:

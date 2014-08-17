@@ -1,4 +1,4 @@
-CC=g++
+CC=clang++
 
 SRC=./library/sys
 CTRL_SRC=./app/controllers
@@ -20,28 +20,28 @@ LPATH= -L./library/third_party/lib
 all: server 
 
 $(TGT)/%.o: $(SRC)/%.cpp
-	$(CC) $(CFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 #############################:
 # targets to build controller code and model code
 
 $(TGT)/%.o: $(CTRL_SRC)/%.cpp
-	$(CC) $(CFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(TGT)/%.o: $(CTRL_SRC2)/%.cpp
-	$(CC) $(CFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(TGT)/%.o: $(MODEL_SRC)/%.cpp
-	$(CC) $(CFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(TGT)/%.o: $(MODEL_SRC2)/%.cpp
-	$(CC) $(CFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 ## end of target for controller and model code
 #################################
 
 $(TGT)/%.o: ./library/%.cpp
-	$(CC) $(CFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 server: $(OBJS)
 	$(CC) $(CFLAGS) $(LPATH) $(OBJS) $(LIBS) -o loopy.bin main.cpp 

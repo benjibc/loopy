@@ -5,22 +5,30 @@
 #include <string>
 
 namespace loopy {
+
+// composition over inheritance
 class LDriver {
  public:
-  explicit LDriver(evthr_t* thread);
-  // 4 public functions that the child driver must implement
-  virtual void DBConnect() = 0;
-}
+  explicit LDriver(evthr_t* thread)
+    : thread_(thread)
+  {}
+
+  virtual void DBConnect();
+
+ protected:
+  evthr_t* thread_;
+};
 
 class DriverError : std::runtime_error {
-  class DriverError(const char* what_arg)
+ public:
+  DriverError(const char* what_arg)
     : runtime_error(what_arg)
   {}
 
-  class DriverError(const char* what_arg)
+  DriverError(const std::string& what_arg)
     : runtime_error(what_arg)
   {}
-}
+};
 
 }  // namespace loopy
 #endif  // LIBRARY_SYS_LDRIVER_H_

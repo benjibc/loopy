@@ -23,6 +23,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <queue>
 #include <functional>
 #include "./lreq.h"
 #include "./lres.h"
@@ -52,8 +53,9 @@ class LController {
   void next(const char* method, const char* next, const char* templateName);
 
   static bool invalidControlHandler(LCtrlHandler ctrlHandler);
+
   /// function to call to initialize the thread
-  virtual void initializeThread(evhtp_t* thread) const;
+  virtual void initializeThread(evthr_t* thread) const;
 
   /// returns a reference to the response object
   LRes& res();
@@ -61,11 +63,10 @@ class LController {
   pReq  rawReq();
 
   /// dispatch a new async chain
-  template<typename T>
-  LAsyncChain& dispatch(T callback);
+  LAsyncChain& dispatch(std::function<void()> callback);
 
   /// get the chain of async functions
-  LAsyncChain& callbacks();
+  std::queue<LAsyncChain>& callbacks();
 
  protected:
   /// request variable for the controller
@@ -73,14 +74,20 @@ class LController {
   /// response variable for the controller
   LRes res_;
 
+  /// thread variable
+  evthr_t* thread_;
+  /// event base
+  evbase_t* evbase_;
+
  private:
   /// async dispatcher for the controller
-  LAsyncChain asyncs_;
+  std::queue<LAsyncChain> asyncs_;
 };
 
-template<typename T>
-LAsyncChain& LController::dispatch(T callback) {
-  return asyncs_.next(callback);
+LAsyncChain& LController::dispatch(std::function<void()> callback) {
+  LAsyncChain async(callback);
+  asyncs_.push(async);
+  return asyncs_.back();
 }
 
 } // namespace loopy

@@ -16,17 +16,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 #include "./lcontroller.h"
+#include <evhtp.h>
 #include <ctemplate/template.h>
 #include <exception>
 #include <string>
 #include <vector>
+#include <queue>
 #include "./lserver.h"
 #include "./lrouter.h"
 
 namespace loopy {
 
 LController::LController(pReq req)
-  : req_(req), res_(req)
+  : req_(req),
+    res_(req),
+    thread_(getRequestThread(req)),
+    evbase_(evthr_get_base(thread_))
 {}
 void LController::next(
   const char* method,
@@ -82,11 +87,11 @@ pReq LController::rawReq() {
   return req_.rawReq();
 }
 
-void LController::initializeThread(evhtp_t* thread) const {
+void LController::initializeThread(evthr_t* thread) const {
   return;
 }
 
-LAsyncChain& LController::callbacks() {
+std::queue<LAsyncChain>& LController::callbacks() {
   return asyncs_;
 }
 
