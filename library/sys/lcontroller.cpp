@@ -19,6 +19,7 @@
 #include <ctemplate/template.h>
 #include <exception>
 #include <string>
+#include <vector>
 #include "./lserver.h"
 #include "./lrouter.h"
 
@@ -80,5 +81,14 @@ LRes& LController::res() {
 pReq LController::rawReq() {
   return req_.rawReq();
 }
+
+void LController::initializeThread(evhtp_t* thread) const {
+  return;
+}
+
+LAsyncChain& LController::callbacks() {
+  return asyncs_;
+}
+
 
 } // namespace loopy

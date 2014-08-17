@@ -105,6 +105,14 @@ enum HTTP_STATUS_CODE {
 // return "Bandwidth Limit Exceeded";
 };
 const char* getMethodName(htp_method method);
+evthr_t* getRequestThread(evhtp_request_t * request);
+
+template <class T1, class T2> struct SameType {
+  enum{value = false};
+};
+template <class T> struct SameType<T, T> {
+  enum{value = true};
+};
 
 }  // namespace loopy
 

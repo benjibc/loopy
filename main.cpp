@@ -38,6 +38,9 @@ main() {
   // a dedicated section for complex hello
   server.intern("/section/hello2", &DefaultController::SubComplexHello2);
 
+  // a dedicated section for complex hello
+  server.get("/async/hi", &DefaultController::AsyncHello);
+
   // default handler when there is no response to be found
   server.setHandlerFor404(&DefaultController::FileNotFound);
 

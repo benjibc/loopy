@@ -28,7 +28,6 @@ void DefaultController::Hello() {
     section_dict->SetValue("LIST_KEY", "KEY");
     section_dict->SetValue("LIST_VALUE", "VALUE");
   }
-
   // render the footer section. The example shows a simple Key-Value pair
   tParams->SetValue("FOOTER", "This is the footer section");
   res_.render("default/example.tpl");
@@ -38,6 +37,23 @@ void DefaultController::Hello() {
 void DefaultController::FileNotFound() {
   std::string notFound = "01234567890";
   res_.send(L_NOT_FOUND, notFound);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// async handler that renders a master template which includes a subtemplate
+// uses queryParam from the user. Request the endpoint in the following format
+// /complex/hello?id=2&name=foobar
+void DefaultController::AsyncHello() {
+  dispatch([this] () {
+    i++;
+    std::cout << i++ << std::endl;
+  }).next([this] () {
+    std::cout << 2 + i<< std::endl;
+  }).next([this] () {
+    std::cout << 2 + i<< std::endl;
+  });
+  std::string rando = "01234567890";
+  res_.send(L_OK, rando);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

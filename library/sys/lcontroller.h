@@ -22,8 +22,11 @@
 #include <unordered_map>
 #include <string>
 #include <memory>
+#include <vector>
+#include <functional>
 #include "./lreq.h"
 #include "./lres.h"
+#include "./lasync.h"
 
 namespace loopy {
 class LServer;
@@ -46,27 +49,39 @@ class LController {
   virtual ~LController() = default;
 
   /// calls for the next controller
-  void next(
-    const char* method,
-    const char* next,
-    const char* templateName
-  );
+  void next(const char* method, const char* next, const char* templateName);
+
   static bool invalidControlHandler(LCtrlHandler ctrlHandler);
   /// function to call to initialize the thread
-  // virtual void initializeThread() const;
+  virtual void initializeThread(evhtp_t* thread) const;
 
   /// returns a reference to the response object
   LRes& res();
   /// get the raw libevhtp request object
   pReq  rawReq();
 
+  /// dispatch a new async chain
+  template<typename T>
+  LAsyncChain& dispatch(T callback);
+
+  /// get the chain of async functions
+  LAsyncChain& callbacks();
+
  protected:
   /// request variable for the controller
   LReq req_;
   /// response variable for the controller
   LRes res_;
+
+ private:
+  /// async dispatcher for the controller
+  LAsyncChain asyncs_;
 };
 
+template<typename T>
+LAsyncChain& LController::dispatch(T callback) {
+  return asyncs_.next(callback);
+}
 
 } // namespace loopy
 

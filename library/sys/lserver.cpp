@@ -16,10 +16,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 #include "./lserver.h"
+
+#include <event2/event.h>
 #include <evhtp.h>
+
 #include <string>
 #include <cstring>
 #include <cstdlib>
+#include <algorithm>
 #include <thread>
 
 #include <iostream>
@@ -71,17 +75,6 @@ LCtrlHandler LServer::getCtrlHandlerStrict(const char* method, const char* path)
 }
 
 
-// get the thread that is handling the current request
-evthr_t* get_request_thr(evhtp_request_t * request) {
-  evhtp_connection_t * htpconn;
-  evthr_t * thread;
-
-  htpconn = evhtp_request_get_connection(request);
-  thread = htpconn->thread;
-
-  return thread;
-}
-
 void processRequest(evhtp_request_t* request, void* arg) {
   struct sockaddr_in* sin;
   auto pServer = static_cast<LServer*>(arg);
@@ -89,7 +82,7 @@ void processRequest(evhtp_request_t* request, void* arg) {
   evhtp_connection_t * conn;
   char tmp[1024];
 
-  // auto thread = get_request_thr(request);
+  // auto thread = getRequestThread(request);
   conn = evhtp_request_get_connection(request);
 
   // auto threadLocal = static_cast<ThreadLocal*>(evthr_get_aux(thread));
@@ -107,10 +100,7 @@ void processRequest(evhtp_request_t* request, void* arg) {
   auto ctrlHandler = pServer->getCtrlHandler(methodName.c_str(), URI->path->full);
 
   evhtp_request_pause(request);
-
-    LServer::serveRequest(ctrlHandler, request);
-
-
+  LServer::serveRequest(ctrlHandler, request);
   evhtp_request_resume(request);
 }
 
@@ -155,6 +145,8 @@ void LServer::serveRequest(LCtrlHandler ctrlHandler, pReq request) {
 
     // execute the request
     ((*pCtrl).*pHandler)();
+
+    auto cbs = pCtrl->callbacks();
 
     // put the output of res into the request object and finish off
     auto& res = pCtrl->res();

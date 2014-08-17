@@ -59,4 +59,16 @@ const char* getMethodName(htp_method method) {
   return "";
 }
 
+// get the thread that is handling the current request
+evthr_t* getRequestThread(evhtp_request_t * request) {
+  evhtp_connection_t * htpconn;
+  evthr_t * thread;
+
+  htpconn = evhtp_request_get_connection(request);
+  thread = htpconn->thread;
+
+  return thread;
+}
+
+
 } // namespace loopy

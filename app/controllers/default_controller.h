@@ -14,12 +14,14 @@ class DefaultController: public LController {
   // handlers for this class
   void Hello();
   void FileNotFound();
+  void AsyncHello();
   void ComplexHello();
   void SubComplexHello();
   void SubComplexHello2();
 
  private:
   std::string name;
+  int i = 0;
 };
 
 } // namespace loopy
