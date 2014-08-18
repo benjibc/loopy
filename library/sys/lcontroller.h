@@ -62,11 +62,12 @@ class LController {
   /// get the raw libevhtp request object
   pReq  rawReq();
 
-  /// dispatch a new async chain
-  LAsyncChain& dispatch(std::function<void()> callback);
+  template<class T>
+  LAsync<void, typename std::result_of<T()>::type, T>*
+  dispatch(T callback);
 
   /// get the chain of async functions
-  std::queue<LAsyncChain>& callbacks();
+  LAsyncBase* callbacks();
 
  protected:
   /// request variable for the controller
@@ -81,13 +82,16 @@ class LController {
 
  private:
   /// async dispatcher for the controller
-  std::queue<LAsyncChain> asyncs_;
+  // std::queue<LAsyncChain> asyncs_;
+  LAsyncBase* asyncs_;
 };
 
-LAsyncChain& LController::dispatch(std::function<void()> callback) {
-  LAsyncChain async(callback);
-  asyncs_.push(async);
-  return asyncs_.back();
+template<class T>
+LAsync<void, typename std::result_of<T()>::type, T>*
+LController::dispatch(T callback) {
+  auto ptr = new LAsync<void, typename std::result_of<T()>::type, T>(callback);
+  asyncs_ = ptr;
+  return ptr;
 }
 
 } // namespace loopy

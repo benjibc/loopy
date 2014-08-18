@@ -51,20 +51,18 @@ void DefaultController::FileNotFound() {
 // /complex/hello?id=2&name=foobar
 void DefaultController::AsyncHello() {
 
-  dispatch([this]() {
+  auto one = dispatch([this]() {
     int i = 0;
+    std::cout << i + 2<< std::endl;
     return i;
-  }).next([this] () {
+  });
 
-    i++;
-    std::cout << i++ << std::endl;
-    return "hello";
-  })
-  .next([this] (std::string helloStr) {
+  auto two = one->next([this] (int i ) {
 
-    std::cout << 2 + i<< std::endl;
-  })
-  .next([this] () {
+    std::cout << i + 1<< std::endl;
+  });
+  two->next([this] () {
+    int i = 2;
 
     std::cout << 2 + i<< std::endl;
   });

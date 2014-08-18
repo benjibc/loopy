@@ -47,14 +47,51 @@ class LAsyncBase {
   LAsyncBasePtr nextAsync_;
 };
 
-/// different specialization
-template <typename LambdaType>
+/// main specialization
+/// dont bother converting lambda to std::function, it doesnt work
+template <typename ArgType, typename ReturnType, typename LambdaType>
 class LAsync : public LAsyncBase {
  public:
   explicit LAsync(LambdaType cb)
     : callback_(cb)
   {}
   typedef LambdaType Lambda;
+  typedef ReturnType NextArgType;
+
+ public:
+  void injectArg(ArgType arg) {
+    arg_ = arg;
+  }
+  /// execute the next callback on stack if there is any
+  void operator() () {
+    callback_(arg_);
+  }
+
+  /// T is NextLambdaType
+  template<typename T>
+  LAsync<NextArgType, decltype(&T::operator()), T>*
+  next(T cb) {
+    return new LAsync<
+      NextArgType,
+      decltype(&T::operator()),
+      T
+    >(cb);
+  }
+
+ private:
+  /// libevhtp thread variable
+  LambdaType    callback_;
+  ArgType       arg_;
+};
+
+template <typename ReturnType, typename LambdaType>
+class LAsync <void, ReturnType, LambdaType> : public LAsyncBase {
+ public:
+  explicit LAsync(LambdaType cb)
+    : callback_(cb)
+  {}
+  typedef LambdaType Lambda;
+  typedef ReturnType NextArgType;
 
  public:
   /// execute the next callback on stack if there is any
@@ -62,41 +99,64 @@ class LAsync : public LAsyncBase {
     callback_();
   }
 
+  /// T is NextLambdaType
+  template<typename T>
+  LAsync<void, typename std::result_of<T()>::type, T>*
+  next(T cb) {
+    return new LAsync<
+      void,
+      typename std::result_of<T()>::type,
+      T
+    >(cb);
+  }
+
+  /// T is NextLambdaType
+  template<typename T2>
+  LAsync<NextArgType, typename std::result_of<T2(NextArgType)>::type, T2>*
+  next(T2 cb) {
+    return new LAsync<
+      NextArgType,
+      typename std::result_of<T2(NextArgType)>::type,
+      T2
+    >(cb);
+  }
+
+
  private:
   /// libevhtp thread variable
   LambdaType    callback_;
 };
 
-/// Chain of Asyncs to call
-class LAsyncChain {
+// case where both are void
+template <typename LambdaType>
+class LAsync <void, void, LambdaType> : public LAsyncBase {
  public:
-  /// start with the first element of the async queue
-  template<typename NextLambdaType>
-  explicit LAsyncChain(NextLambdaType lambda) {
+  explicit LAsync(LambdaType cb)
+    : callback_(cb)
+  {}
+  typedef LambdaType Lambda;
+  typedef void NextArgType;
 
-    auto ptr = LAsyncBasePtr(new LAsync<NextLambdaType>(lambda));
-    callbacks_.push_back(ptr);
+ public:
+  /// execute the next callback on stack if there is any
+  void operator() () {
+    callback_();
   }
 
-  /// add another element in the async queue
-  template<typename NextLambdaType>
-  LAsyncChain& next(NextLambdaType lambda) {
-
-    auto ptr = LAsyncBasePtr(new LAsync<NextLambdaType>(lambda));
-    callbacks_.push_back(ptr);
-    return *this;
-  }
-
-  bool operator()() {
-    std::for_each(callbacks_.begin(), callbacks_.end(), [] (LAsyncBasePtr asc) {
-      (*asc)();
-    });
-    return true;
+  /// T is NextLambdaType
+  template<typename T>
+  LAsync<NextArgType, decltype(&T::operator()), T>*
+  next(T cb) {
+    return new LAsync<
+      NextArgType,
+      decltype(&T::operator()),
+      T
+    >(cb);
   }
 
  private:
-  std::vector<LAsyncBasePtr> callbacks_;
+  /// libevhtp thread variable
+  LambdaType    callback_;
 };
-
 } // namespace loopy
 #endif  // LIBRARY_SYS_LASYNC_H_

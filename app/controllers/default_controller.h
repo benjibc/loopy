@@ -2,7 +2,7 @@
 #define APP_CONTROLLERS_DEFAULT_CONTROLLER_H_
 
 #include <library/sys/lcontroller.h>
-//#include <drivers/loopy-redis/loopy-redis.h>
+// #include <drivers/loopy-redis/loopy-redis.h>
 #include <string>
 
 namespace loopy {

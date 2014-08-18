@@ -91,7 +91,7 @@ void LController::initializeThread(evthr_t* thread) const {
   return;
 }
 
-std::queue<LAsyncChain>& LController::callbacks() {
+LAsyncBase* LController::callbacks() {
   return asyncs_;
 }
 
