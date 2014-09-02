@@ -13,7 +13,7 @@ SOURCES+=./library/threadlocal.cpp ./library/threadshared.cpp
 OBJS=$(addprefix $(TGT)/, $(notdir $(SOURCES:.cpp=.o)))
 
 CFLAGS=-Wall -I./library/third_party/include -I./ -std=c++11
-LIBS=-lctemplate -levhtp -lpthread -levent
+LIBS=-lctemplate -levhtp -lpthread -levent -lhiredis
 
 LPATH= -L./library/third_party/lib
 
@@ -82,7 +82,7 @@ LPATH= -L./library/third_party/lib
 SRC=./library/sys/
 T_APPSRC=./app/*
 T_APPSRC2=./app/*/*
-LIBS=-lctemplate -levhtp -lpthread -levent
+LIBS=-lctemplate -levhtp -lpthread -levent -lhiredis
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that

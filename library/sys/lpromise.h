@@ -15,34 +15,58 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-#ifndef LIBRARY_THREADLOCAL_H_
-#define LIBRARY_THREADLOCAL_H_
-
-#include <evhtp.h>
-#include <unordered_map>
-#include <string>
-#include <memory>
-#include "./sys/threadlocalbase.h"
-#include "./sys/ldriver.h"
-#include "drivers/loopy-redis/loopy-redis.h"
-#include "./threadshared.h"
-
+#ifndef LIBRARY_SYS_LPROMISE_H_
+#define LIBRARY_SYS_LPROMISE_H_
 
 namespace loopy {
 
-/**
- * This class contains the thread local data for the server.
- */
-class ThreadLocal {
+class LPromiseBase {
+
  public:
-  ThreadLocal() = default;
-  // make sure it is only new'ed into the call
-  void attachDriver(LDriver* driver) {
-    drivers_[driver->DriverName()] = std::shared_ptr<LDriver>(driver); 
-  }
- private:
-  std::unordered_map<std::string, std::shared_ptr<LDriver>> drivers_;
+   typedef std::function<void(void*)> TriggerType;
+   typedef std::function<void(void*)> CallbackType;
+
+ public:
+  LPromiseBase(TriggerType trigger)
+    : trigger_(trigger)
+  {}
+
+  virtual ~LPromiseBase() = default;
+
+  virtual void initTrigger() = 0;
+
+ protected:
+  TriggerType trigger_;
+  CallbackType callback_;
 };
 
-} // namespace loopy
-#endif  // LIBRARY_THREADLOCAL_H_
+/// LPromise takes a trigger, that would take a callback, register with libevent
+/// and make sure the callback is executed once the DB call finishes 
+template<typename DriverType>
+class LPromise : public LPromiseBase {
+
+ private:
+   typedef typename DriverType::ReturnType DBReturnType;
+
+ public:
+  LPromise(LPromiseBase::TriggerType trigger)
+    : LPromiseBase(trigger)
+  {}
+
+  void initTrigger() {
+    trigger_(static_cast<void*>(&callback_));
+  }
+
+  template<typename nextLambdaType>
+  void then(nextLambdaType onEnd) {
+    callback_ = std::function<void(void* data)>(
+      [onEnd](void* data) {
+        onEnd(static_cast<DBReturnType*>(data));
+      }
+    );
+  }
+};
+
+}  // namespace loopy
+
+#endif  // LIBRARY_SYS_LPROMISE_H_

@@ -32,15 +32,51 @@
 #include <limits.h>
 #include "../../third_party/googletest/include/gtest/gtest.h"
 #include "../../sys/lcontroller.h"
+#include "../app/controllers/default_controller.h"
 
 using namespace loopy;
 
 // pass in an invalid controller, make sure invalid controller can tell
 // that the controller is indeed invalid
-TEST(ValidControllerTest, True) {
+TEST(ValidControllerTest, BothNullPtr) {
   LCtrlHandler ctrlHandler = std::make_tuple(
-    (ctrllrPtr) nullptr,
+    (ctrllerFactoryFunc) nullptr,
     (LHandler)  nullptr
   );
   EXPECT_TRUE(LController::invalidControlHandler(ctrlHandler));
+}
+
+TEST(ValidControllerTest, CtrllrAsNullPtr) {
+  LCtrlHandler ctrlHandler = std::make_tuple(
+    (ctrllerFactoryFunc) nullptr,
+    (LHandler) &DefaultController::Hello
+  );
+  EXPECT_TRUE(LController::invalidControlHandler(ctrlHandler));
+}
+
+TEST(ValidControllerTest, MethodAsNullPtr) {
+  LCtrlHandler ctrlHandler = std::make_tuple(
+    (ctrllerFactoryFunc) nullptr,
+    (LHandler) &DefaultController::Hello
+  );
+  EXPECT_TRUE(LController::invalidControlHandler(ctrlHandler));
+}
+
+TEST(ValidControllerTest, ValidController) {
+  auto factory = [] (pReq req) -> LController* {
+    return new DefaultController(req);
+  };
+  LCtrlHandler ctrlHandler = std::make_tuple(
+    (ctrllerFactoryFunc) factory,
+    (LHandler) &DefaultController::Hello
+  );
+  EXPECT_TRUE(LController::invalidControlHandler(ctrlHandler));
+}
+
+TEST(ControllerInit, ControllerInitializedWithNullptr) {
+  auto factory = [] (pReq req) -> LController* {
+    return new DefaultController(req);
+  };
+  auto controller = factory(nullptr);
+  EXPECT_TRUE(controller);
 }

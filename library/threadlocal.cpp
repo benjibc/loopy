@@ -19,8 +19,4 @@
 
 namespace loopy {
 
-ThreadLocal::ThreadLocal(ThreadShared* threadShared, SysThreadInfo sysInfo)
-  :ThreadLocalBase(sysInfo.threadPtr, sysInfo.threadEventBase)
-{}
-
 }

@@ -8,15 +8,18 @@ namespace loopy {
 
 class DefaultController: public LController {
   public:
-    DefaultController();
+    DefaultController(pReq req);
     virtual ~DefaultController() = default;
 
     // handlers for this class
-    void Hello              (LReq& req, LRes& res) const;
-    void FileNotFound       (LReq& req, LRes& res) const;
-    void ComplexHello       (LReq& req, LRes& res) const;
-    void SubComplexHello    (LReq& req, LRes& res) const;
-    void SubComplexHello2   (LReq& req, LRes& res) const;
+    void Hello();
+    void FileNotFound();
+    void AsyncHello();
+    void ComplexHello();
+    void SubComplexHello();
+    void SubComplexHello2();
+
+    void initThread(evthr_t* thread) const override;
 
   private:
     std::string name;

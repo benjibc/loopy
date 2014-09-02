@@ -8,11 +8,13 @@ namespace loopy {
 
 DefaultController::DefaultController(pReq req)
   : LController(req),
-    name("Benny")
+    name("Benny"),
+    redis(nullptr)
 {}
 
-void DefaultController::initializeThread(evthr_t* thread) const {
-//  redis_ = new LoopyRedis(thread, "0.0.0.0", 6379);
+void DefaultController::initThread(evthr_t* thread) const {
+  auto* threadLocal = static_cast<ThreadLocal*>(evthr_get_aux(thread));
+  threadLocal->attachDriver(new LRedis(thread, "0.0.0.0", 6379));
 }
 
 // handler that renders a file in the view, and return the result to the user
@@ -50,25 +52,10 @@ void DefaultController::FileNotFound() {
 // uses queryParam from the user. Request the endpoint in the following format
 // /complex/hello?id=2&name=foobar
 void DefaultController::AsyncHello() {
-
-  auto one = dispatch([this]() {
-    int i = 0;
-    std::cout << i + 2<< std::endl;
-    return i;
+  async(redis->set("hello", "hi"), [this] (redisReply* reply) {
+    std::string str = "redis has finished";
+    res_.send(L_OK, str);
   });
-
-  auto two = one->next([this] (int i ) {
-
-    std::cout << i + 1<< std::endl;
-  });
-  two->next([this] () {
-    int i = 2;
-
-    std::cout << 2 + i<< std::endl;
-  });
-
-  std::string rando = "01234567890";
-  res_.send(L_OK, rando);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

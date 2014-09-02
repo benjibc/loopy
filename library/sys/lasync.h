@@ -25,10 +25,26 @@
 #include <memory>
 #include "./utils.h"
 
+/// The LAsync component has three main parts to it
+/// the initializer function: this function will actually be an async function.
+/// the library responsible will have to know how to register the callback to 
+/// the libevent library, and know how to release the registered callback.
+///
+/// You can add callbacks after the first callback using .then(...). The callbacks
+/// will not be registered in the event loop. Rather, it will call be executed
+/// when the result was obtained from the event loop.
+///
+/// You can also chain multiple callbacks together and batch them using
+/// .batchDispatch(...).finally(), where finally would contain a list of results
+/// all the calls will be type checked to ensure type safety. During the
+/// construction batchDispatch, you also have access to a helper function called
+/// `async` where it would act as dispatch
+
 namespace loopy {
 
 class LAsyncBase;
 
+/// FIXME: change this to unique_ptr
 typedef std::shared_ptr<LAsyncBase> LAsyncBasePtr;
 
 // dummy base class so I can have a pointer to it
@@ -43,7 +59,9 @@ class LAsyncBase {
   virtual void operator()() = 0;
 
 
- private:
+ protected:
+  /// next async execution. It is chained together because it needs to make sure
+  /// it has the ability to store the next pointer
   LAsyncBasePtr nextAsync_;
 };
 
@@ -71,11 +89,12 @@ class LAsync : public LAsyncBase {
   template<typename T>
   LAsync<NextArgType, decltype(&T::operator()), T>*
   next(T cb) {
-    return new LAsync<
+    nextAsync_.reset(new LAsync<
       NextArgType,
       decltype(&T::operator()),
       T
-    >(cb);
+    >(cb));
+    return nextAsync_.get();
   }
 
  private:
@@ -158,5 +177,6 @@ class LAsync <void, void, LambdaType> : public LAsyncBase {
   /// libevhtp thread variable
   LambdaType    callback_;
 };
+
 } // namespace loopy
 #endif  // LIBRARY_SYS_LASYNC_H_

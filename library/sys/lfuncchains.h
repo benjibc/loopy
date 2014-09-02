@@ -15,34 +15,39 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-#ifndef LIBRARY_THREADLOCAL_H_
-#define LIBRARY_THREADLOCAL_H_
+#ifndef LIBRARY_SYS_LFUNCCHAIN_H__
+#define LIBRARY_SYS_LFUNCCHAIN_H__
 
 #include <evhtp.h>
-#include <unordered_map>
-#include <string>
+#include <queue>
+#include <vector>
+#include <algorithm>
 #include <memory>
-#include "./sys/threadlocalbase.h"
-#include "./sys/ldriver.h"
-#include "drivers/loopy-redis/loopy-redis.h"
-#include "./threadshared.h"
+#include "./utils.h"
 
-
+// LFuncChain will be responsible for holding multiple lambdas together. It
+// will always make sure the return type of the first lambda matches the parameter
+// type of the second lambda. Also, it will overload a paramter type to execute
+// all the data on a certain function set. You will be able to chain the lambda
+// using `then`
+//
 namespace loopy {
 
-/**
- * This class contains the thread local data for the server.
- */
-class ThreadLocal {
+class LAsyncBase {
  public:
-  ThreadLocal() = default;
-  // make sure it is only new'ed into the call
-  void attachDriver(LDriver* driver) {
-    drivers_[driver->DriverName()] = std::shared_ptr<LDriver>(driver); 
-  }
+  LAsyncBase() = default;
+  virtual ~LAsyncBase() = default;
+};
+
+/// main specialization
+/// dont bother converting lambda to std::function, it doesnt work
+class LAsync : public LAsyncBase {
+ public:
+  LAsync(LQuery* query);
  private:
-  std::unordered_map<std::string, std::shared_ptr<LDriver>> drivers_;
+  LambdaType initLambda;
 };
 
 } // namespace loopy
-#endif  // LIBRARY_THREADLOCAL_H_
+
+#endif  // LIBRARY_SYS_LFUNCCHAIN_H__

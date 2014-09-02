@@ -27,7 +27,7 @@
 #include <functional>
 #include "./lreq.h"
 #include "./lres.h"
-#include "./lasync.h"
+#include "./lpromise.h"
 
 namespace loopy {
 class LServer;
@@ -55,19 +55,19 @@ class LController {
   static bool invalidControlHandler(LCtrlHandler ctrlHandler);
 
   /// function to call to initialize the thread
-  virtual void initializeThread(evthr_t* thread) const;
+  virtual void initThread(evthr_t* thread) const = 0;
+
+  /// container for the promise
+  template<typename PromisePtrTypes, typename LambdaType>
+  void async(PromisePtrTypes promise, LambdaType callback);
+
+  /// execute the promises contained
+  void execPromises();
 
   /// returns a reference to the response object
   LRes& res();
   /// get the raw libevhtp request object
   pReq  rawReq();
-
-  template<class T>
-  LAsync<void, typename std::result_of<T()>::type, T>*
-  dispatch(T callback);
-
-  /// get the chain of async functions
-  LAsyncBase* callbacks();
 
  protected:
   /// request variable for the controller
@@ -80,19 +80,21 @@ class LController {
   /// event base
   evbase_t* evbase_;
 
+  /// thread local variable
+  ThreadLocal* threadLocal_;
+
  private:
-  /// async dispatcher for the controller
-  // std::queue<LAsyncChain> asyncs_;
-  LAsyncBase* asyncs_;
+  /// an array of promises initiated by the user
+  std::vector<std::shared_ptr<LPromiseBase>> promises;
 };
 
-template<class T>
-LAsync<void, typename std::result_of<T()>::type, T>*
-LController::dispatch(T callback) {
-  auto ptr = new LAsync<void, typename std::result_of<T()>::type, T>(callback);
-  asyncs_ = ptr;
-  return ptr;
+/// just takes the promise and returns it
+template<typename PromisePtrTypes, typename LambdaType>
+void LController::async(PromisePtrTypes promise, LambdaType callback) {
+  promise->then(callback);
+  promises.push_back(promise);
 }
+
 
 } // namespace loopy
 

@@ -31,7 +31,8 @@ LController::LController(pReq req)
   : req_(req),
     res_(req),
     thread_(getRequestThread(req)),
-    evbase_(evthr_get_base(thread_))
+    evbase_(evthr_get_base(thread_)),
+    threadLocal_(static_cast<ThreadLocal*>(evthr_get_aux(thread_)))
 {}
 void LController::next(
   const char* method,
@@ -87,13 +88,14 @@ pReq LController::rawReq() {
   return req_.rawReq();
 }
 
-void LController::initializeThread(evthr_t* thread) const {
+void LController::initThread(evthr_t* thread) const {
   return;
 }
 
-LAsyncBase* LController::callbacks() {
-  return asyncs_;
+void LController::execPromises() {
+  for(auto& promise: promises) {
+    promise->initTrigger();
+  }
 }
-
 
 } // namespace loopy

@@ -109,16 +109,15 @@ void processRequest(evhtp_request_t* request, void* arg) {
  */
 void initializeThread(evhtp_t * htp, evthr_t * thread, void* arg) {
 
-  ThreadShared* threadShared = static_cast<ThreadShared*>(arg);
+  // ThreadShared* threadShared = static_cast<ThreadShared*>(arg);
 
   // populate the system related information required for the thread, and
   // initialize the ThreadLocal storage
-  auto evbase = evthr_get_base(thread);
-  SysThreadInfo sysInfo(thread, evbase);
+  // auto evbase = evthr_get_base(thread);
 
   // TODO: memory leak when the thread is stopped. But when the thread is
   // stopped, server shouldve died anyways
-  ThreadLocal* threadLocal = new ThreadLocal(threadShared, sysInfo);
+  ThreadLocal* threadLocal = new ThreadLocal();
   evthr_set_aux(thread, threadLocal);
 }
 
@@ -146,7 +145,8 @@ void LServer::serveRequest(LCtrlHandler ctrlHandler, pReq request) {
     // execute the request
     ((*pCtrl).*pHandler)();
 
-    auto cbs = pCtrl->callbacks();
+    // FIXME: result not sent after promises are executed
+    pCtrl->execPromises();
 
     // put the output of res into the request object and finish off
     auto& res = pCtrl->res();
@@ -173,6 +173,5 @@ void LServer::serveRequest(LCtrlHandler ctrlHandler, pReq request) {
     evhtp_send_reply(request, L_SERVER_ERROR);
   }
 }
-
 
 } // namespace loopy
