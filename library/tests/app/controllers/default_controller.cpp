@@ -5,11 +5,13 @@
 namespace loopy {
 
 DefaultController::DefaultController(pReq req)
-  :LController(req), name("Benny")
+  : LController(req),
+    name("Benny"),
+    redis(static_cast<LRedis*>(threadLocal_->getDriver("LRedis")))
 {}
 
 /// test to attach the driver
-void DefaultController::initThread(evthr_t* thread) const {
+void DefaultController::initThread(evthr_t* thread) {
   auto* threadLocal = static_cast<ThreadLocal*>(evthr_get_aux(thread));
   threadLocal->attachDriver(new LRedis(thread, "0.0.0.0", 6379));
 }

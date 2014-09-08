@@ -80,6 +80,9 @@ class LServer {
   template<class T>
   void setHandlerFor500(void (T::*handler)());
 
+  // destructor should be public
+  ~LServer();
+
  private:
   // lock the constructor to make sure the server is a singleton
   LServer(
@@ -93,9 +96,11 @@ class LServer {
   LServer(LServer const&) = delete;
   LServer& operator=(LServer const&) = delete;
 
+  typedef void(*CustomDeleter)(evhtp_t*);
+
   // members of the class
   evbase_t* _evbase;
-  std::unique_ptr<evhtp_t>      _htp;
+  std::unique_ptr<evhtp_t, CustomDeleter> _htp;
   std::string                   _addr;
   uint16_t                      _port;
   uint16_t                      _num_threads;

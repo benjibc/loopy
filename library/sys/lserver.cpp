@@ -37,12 +37,16 @@ LServer::LServer(
   int         backlog
 )
   : _evbase(event_base_new()),
-    _htp(evhtp_new(_evbase, NULL)),
+    _htp(evhtp_new(_evbase, NULL), evhtp_free),
     _addr(address),
     _port(port),
     _num_threads(num_threads),
     _backlog(backlog)
 {}
+
+LServer::~LServer() {
+  event_base_free(_evbase);
+}
 
 // TODO: make error reporting
 void LServer::run() {
@@ -62,7 +66,6 @@ void LServer::run() {
 
   event_base_loop(_evbase, 0);
 }
-
 
 LCtrlHandler LServer::getCtrlHandler(const char* method, const char* path) {
   std::string key = std::string(method) + "::" + path;

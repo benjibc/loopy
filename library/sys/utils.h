@@ -19,6 +19,7 @@
 #define LIBRARY_SYS_UTILS_H_
 
 #include <evhtp.h>
+#include "../threadlocal.h"
 
 namespace loopy {
 
@@ -107,12 +108,57 @@ enum HTTP_STATUS_CODE {
 const char* getMethodName(htp_method method);
 evthr_t* getRequestThread(evhtp_request_t * request);
 
+// helper template to decide if the two types are the same
 template <class T1, class T2> struct SameType {
   enum{value = false};
 };
 template <class T> struct SameType<T, T> {
   enum{value = true};
 };
+
+// helper function to make and free dummy connections
+void free_dummy_conn(evhtp_connection_t* conn);
+evhtp_connection_t * new_dummy_conn(evhtp_t* htp);
+
+void dummyInitializeThread(evthr_t * thread, void* arg);
+
+// helper function to make and free dummy requests
+template<typename T>
+evhtp_request_t * new_dummy_request() {
+
+  evbase_t * evbase = event_base_new();
+  evhtp_t  * htp    = evhtp_new(evbase, NULL);
+
+  evhtp_request_t * req;
+  
+  evhtp_connection_t* conn = new_dummy_conn(htp);
+
+  conn->thread = evthr_new(dummyInitializeThread, (void*)&T::initThread);
+  evthr_start(conn->thread);
+
+  evhtp_uri_t * uri = new evhtp_uri_t;
+  uri->path = new evhtp_path_t;
+  uri->path->full = "/";
+  uri->path->file = "/";
+  uri->path->path = "/";
+
+  if (!(req = new evhtp_request_t)) {
+    return nullptr;
+  }
+  
+  req->conn = conn;
+  req->htp = htp;
+  req->uri = uri;
+  req->status = EVHTP_RES_OK;
+  req->buffer_in = evbuffer_new();
+  req->buffer_out = evbuffer_new();
+  req->headers_in = new evhtp_headers_t;
+  req->headers_out = new evhtp_headers_t;
+  TAILQ_INIT(req->headers_in);
+  TAILQ_INIT(req->headers_out);
+  return req;
+}
+void free_dummy_request(evhtp_request_t* req);
 
 }  // namespace loopy
 

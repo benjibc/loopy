@@ -19,10 +19,12 @@ class DefaultController: public LController {
     void SubComplexHello();
     void SubComplexHello2();
 
-    void initThread(evthr_t* thread) const override;
+    static void initThread(evthr_t* thread);
 
   private:
     std::string name;
+    // store a reference to the redis server
+    LRedis* redis;
 };
 
 }

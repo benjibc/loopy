@@ -16,6 +16,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 #include "./utils.h"
+#include "../threadlocal.h"
 
 namespace loopy {
 
@@ -59,16 +60,82 @@ const char* getMethodName(htp_method method) {
   return "";
 }
 
+void dummyInitializeThread(evthr_t* thread, void* arg) {
+  ThreadLocal* threadLocal = new ThreadLocal();
+  evthr_set_aux(thread, threadLocal);
+  // damn c++, why cannot I directly cast to function pointer...
+  auto callback = (void(*)(evthr_t* thread))arg;
+  (*callback)(thread);
+}
+
 // get the thread that is handling the current request
 evthr_t* getRequestThread(evhtp_request_t * request) {
   evhtp_connection_t * htpconn;
-  evthr_t * thread;
 
   htpconn = evhtp_request_get_connection(request);
-  thread = htpconn->thread;
-
-  return thread;
+  if (htpconn) {
+    evthr_t * thread;
+    thread = htpconn->thread;
+    return thread;
+  } else {
+    return nullptr;
+  }
 }
 
+evhtp_connection_t * new_dummy_conn(evhtp_t* htp) {
+
+  evhtp_connection_t * connection;
+
+  if (!(connection = new evhtp_connection_t)) {
+    return nullptr;
+  }
+
+  connection->error = 0;
+  connection->owner = 1;
+  connection->paused = 0;
+
+  // pass in an invalid socket
+  connection->sock = -1;
+  connection->htp = htp;
+
+  // request is server type request
+  connection->type = evhtp_type_server;
+
+  // pass in an invalid parser
+  connection->parser = nullptr; 
+
+
+  // omitted a bunch of parser hooks for connection
+  return connection;
+}
+
+void free_dummy_conn(evhtp_connection_t* conn) {
+  ThreadLocal* local = static_cast<ThreadLocal*>(evthr_get_aux(conn->thread));
+  delete local;
+  evthr_free(conn->thread);
+  delete conn;
+}
+
+void free_dummy_request(evhtp_request_t* req) {
+  if (req == nullptr) {
+    return;
+  }
+  if (req->headers_in != nullptr) {
+    delete req->headers_in;
+  }
+  if (req->headers_out != nullptr) {
+    delete req->headers_out;
+  }
+
+  evbuffer_free(req->buffer_in);
+  evbuffer_free(req->buffer_out);
+
+  free_dummy_conn(req->conn);
+  event_base_free(req->htp->evbase);
+  evhtp_free(req->htp);
+  delete req->uri->path;
+  delete req->uri;
+  delete req;
+}
 
 } // namespace loopy

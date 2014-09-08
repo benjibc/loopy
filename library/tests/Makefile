@@ -25,7 +25,7 @@ TOPDIR=../
 SRC=../sys/
 APPSRC=./app/*
 APPSRC2=./app/*/*
-LIBS=-lctemplate -levhtp -lpthread -levent
+LIBS=-lctemplate -levhtp -lpthread -levent -lhiredis
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
@@ -88,21 +88,23 @@ gtest_main.a : gtest-all.o gtest_main.o
 # function.
 
 $(TGT)/%.o: $(USER_DIR)/%.cpp
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) -c $< -o $@
 
 $(TGT)/%.o: $(SRC)/%.cpp
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) -c $< -o $@
 $(TGT)/%.o: $(SRC)/%.cpp
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) -c $< -o $@
 $(TGT)/%.o: $(APPSRC)/%.cpp
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) -c $< -o $@
 $(TGT)/%.o: $(APPSRC2)/%.cpp
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) -c $< -o $@
 $(TGT)/%.o: $(TOPDIR)/%.cpp
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) $(LIBS) -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH) -c $< -o $@
 
 unittest: $(OBJS) gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH)  $^ $(LIBS) -o $@.bin
 
 run: 
-	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../third_party/lib; export LD_LIBRARY_PATH; ./unittest.bin
+	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../third_party/lib; export LD_LIBRARY_PATH; valgrind ./unittest.bin
+memory_leak: 
+	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../third_party/lib; export LD_LIBRARY_PATH; valgrind --leak-check=full ./unittest.bin

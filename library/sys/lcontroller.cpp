@@ -31,8 +31,9 @@ LController::LController(pReq req)
   : req_(req),
     res_(req),
     thread_(getRequestThread(req)),
-    evbase_(evthr_get_base(thread_)),
-    threadLocal_(static_cast<ThreadLocal*>(evthr_get_aux(thread_)))
+    evbase_(thread_ ? evthr_get_base(thread_) : nullptr),
+    threadLocal_(thread_ ? 
+      static_cast<ThreadLocal*>(evthr_get_aux(thread_)): nullptr)
 {}
 void LController::next(
   const char* method,
@@ -86,10 +87,6 @@ LRes& LController::res() {
 
 pReq LController::rawReq() {
   return req_.rawReq();
-}
-
-void LController::initThread(evthr_t* thread) const {
-  return;
 }
 
 void LController::execPromises() {

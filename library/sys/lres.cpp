@@ -104,5 +104,3 @@ const std::string& LRes::getIncludedTemplateFilename() const {
 }
 
 }
-
-

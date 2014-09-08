@@ -65,6 +65,10 @@ class LPromise : public LPromiseBase {
       }
     );
   }
+  
+  void execute() {
+    callback_();
+  }
 };
 
 }  // namespace loopy

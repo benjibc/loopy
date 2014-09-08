@@ -54,9 +54,6 @@ class LController {
 
   static bool invalidControlHandler(LCtrlHandler ctrlHandler);
 
-  /// function to call to initialize the thread
-  virtual void initThread(evthr_t* thread) const = 0;
-
   /// container for the promise
   template<typename PromisePtrTypes, typename LambdaType>
   void async(PromisePtrTypes promise, LambdaType callback);
@@ -94,7 +91,6 @@ void LController::async(PromisePtrTypes promise, LambdaType callback) {
   promise->then(callback);
   promises.push_back(promise);
 }
-
 
 } // namespace loopy
 

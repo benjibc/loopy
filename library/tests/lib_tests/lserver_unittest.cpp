@@ -41,3 +41,5 @@ TEST(ServerSingletonTest, SameAddress) {
   LServer& server2 = LServer::getInstance();
   EXPECT_EQ(&server, &server2);
 }
+
+// test the serverRequests

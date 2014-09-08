@@ -30,61 +30,47 @@
 // test for lserver
 
 #include <limits.h>
-#include <evhtp.h>
 #include "../../third_party/googletest/include/gtest/gtest.h"
 #include "../../sys/lcontroller.h"
+#include "../../sys/lpromise.h"
 #include "../app/controllers/default_controller.h"
 
 using namespace loopy;
 
-// pass in an invalid controller, make sure invalid controller can tell
-// that the controller is indeed invalid
-TEST(ValidControllerTest, BothNullPtr) {
-  LCtrlHandler ctrlHandler = std::make_tuple(
-    (ctrllerFactoryFunc) nullptr,
-    (LHandler)  nullptr
-  );
-  EXPECT_TRUE(LController::invalidControlHandler(ctrlHandler));
+// this is the test case that shows that the trigger should be responsible of
+// calling the callback
+TEST(ValidPromise, TriggerGetsCalledOnInitTrigger) {
+  int trigger_calls = 0;
+  int callback_calls = 0;
+  auto trigger = std::function<void(void*)>([&] (void* arg) {
+    trigger_calls++;
+  });
+  auto promise = LPromise<LRedis>(trigger);
+  promise.then([&](redisReply* reply) {
+    callback_calls++; 
+  });
+
+  promise.initTrigger();
+  EXPECT_EQ(trigger_calls, 1);
+  EXPECT_EQ(callback_calls, 0);
 }
 
-TEST(ValidControllerTest, CtrllrAsNullPtr) {
-  LCtrlHandler ctrlHandler = std::make_tuple(
-    (ctrllerFactoryFunc) nullptr,
-    (LHandler) &DefaultController::Hello
-  );
-  EXPECT_TRUE(LController::invalidControlHandler(ctrlHandler));
+TEST(ValidPromise, CallbackCalledExplicitly) {
+  int trigger_calls = 0;
+  int callback_calls = 0;
+  auto trigger = std::function<void(void*)>([&] (void* arg) {
+    trigger_calls++;
+    auto callback = static_cast<std::function<void(void*)>*>(arg);
+    (*callback)(nullptr);
+  });
+  auto promise = LPromise<LRedis>(trigger);
+  promise.then([&](redisReply* reply) {
+    callback_calls++; 
+  });
+
+  promise.initTrigger();
+  EXPECT_EQ(trigger_calls, 1);
+  EXPECT_EQ(callback_calls, 1);
+  EXPECT_NE(callback_calls, 0);
 }
 
-TEST(ValidControllerTest, MethodAsNullPtr) {
-  LCtrlHandler ctrlHandler = std::make_tuple(
-    (ctrllerFactoryFunc) nullptr,
-    (LHandler) &DefaultController::Hello
-  );
-  EXPECT_TRUE(LController::invalidControlHandler(ctrlHandler));
-}
-
-TEST(ValidControllerTest, ValidController) {
-  auto factory = [] (pReq req) -> LController* {
-    return new DefaultController(req);
-  };
-  LCtrlHandler ctrlHandler = std::make_tuple(
-    (ctrllerFactoryFunc) factory,
-    (LHandler) &DefaultController::Hello
-  );
-  EXPECT_FALSE(LController::invalidControlHandler(ctrlHandler));
-}
-
-// make sure when requesst is a nullptr, we can still handle the result properly
-TEST(ControllerInit, ControllerInitializedWithNullptr) {
-  auto factory = [] (pReq req) -> LController* {
-    return new DefaultController(req);
-  };
-
-  auto request = new_dummy_request<DefaultController>(); 
-
-  auto controller = factory(request);
-  EXPECT_TRUE(controller);
-  // FIXME
-  free_dummy_request(request);
-  delete controller;
-}

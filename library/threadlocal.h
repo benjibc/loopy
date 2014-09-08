@@ -40,6 +40,9 @@ class ThreadLocal {
   void attachDriver(LDriver* driver) {
     drivers_[driver->DriverName()] = std::shared_ptr<LDriver>(driver); 
   }
+  LDriver* getDriver(std::string driverName) {
+    return drivers_[driverName].get();
+  }
  private:
   std::unordered_map<std::string, std::shared_ptr<LDriver>> drivers_;
 };
