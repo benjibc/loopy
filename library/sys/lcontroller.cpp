@@ -95,4 +95,8 @@ void LController::execPromises() {
   }
 }
 
+bool LController::isAsync() const {
+  return promises.size() > 0;
+}
+
 } // namespace loopy

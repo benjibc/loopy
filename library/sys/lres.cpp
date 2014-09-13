@@ -30,6 +30,17 @@ LRes::LRes(pReq request)
 void LRes::send(HTTP_STATUS_CODE code, std::string& content) {
   std::swap(_output, content);
   _code = code; 
+  if (this->isModified()) {
+
+    evbuffer_add(_request->buffer_out, res.getContent(), res.contentSize());
+
+    evhtp_headers_add_header(
+      request->headers_out,
+      evhtp_header_new("Content-Type", "text/html", 0, 0)
+    );
+  }
+  evhtp_send_reply(_request, res.status());
+  evhtp_request_resume(_request);
 };
 
 void LRes::send(std::string& content) {

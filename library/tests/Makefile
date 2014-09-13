@@ -105,6 +105,8 @@ unittest: $(OBJS) gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH)  $^ $(LIBS) -o $@.bin
 
 run: 
-	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../third_party/lib; export LD_LIBRARY_PATH; valgrind ./unittest.bin
+	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../third_party/lib; export LD_LIBRARY_PATH; ./unittest.bin
+ddd: 
+	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../third_party/lib; export LD_LIBRARY_PATH; ddd ./unittest.bin
 memory_leak: 
 	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../third_party/lib; export LD_LIBRARY_PATH; valgrind --leak-check=full ./unittest.bin

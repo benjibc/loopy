@@ -75,7 +75,7 @@ TEST(ValidControllerTest, ValidController) {
 }
 
 // make sure when requesst is a nullptr, we can still handle the result properly
-TEST(ControllerInit, ControllerInitializedWithNullptr) {
+TEST(ControllerInit, ControllerInitializedWithDummyRequest) {
   auto factory = [] (pReq req) -> LController* {
     return new DefaultController(req);
   };
@@ -84,7 +84,20 @@ TEST(ControllerInit, ControllerInitializedWithNullptr) {
 
   auto controller = factory(request);
   EXPECT_TRUE(controller);
-  // FIXME
+  free_dummy_request(request);
+  delete controller;
+}
+
+// make sure when requesst is a nullptr, we can still handle the result properly
+TEST(ControllerInit, TestAsyncResponseWithDummyRequest) {
+  auto factory = [] (pReq req) -> LController* {
+    return new DefaultController(req);
+  };
+
+  auto request = new_dummy_request<DefaultController>(); 
+
+  auto controller = factory(request);
+  EXPECT_TRUE(controller);
   free_dummy_request(request);
   delete controller;
 }

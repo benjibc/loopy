@@ -58,6 +58,9 @@ class LController {
   template<typename PromisePtrTypes, typename LambdaType>
   void async(PromisePtrTypes promise, LambdaType callback);
 
+  /// check if the controller is an async controller
+  bool isAsync() const; 
+
   /// execute the promises contained
   void execPromises();
 

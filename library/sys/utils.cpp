@@ -17,6 +17,7 @@
 // SOFTWARE.
 #include "./utils.h"
 #include "../threadlocal.h"
+#include <iostream>
 
 namespace loopy {
 
@@ -67,6 +68,7 @@ void dummyInitializeThread(evthr_t* thread, void* arg) {
   auto callback = (void(*)(evthr_t* thread))arg;
   (*callback)(thread);
 }
+
 
 // get the thread that is handling the current request
 evthr_t* getRequestThread(evhtp_request_t * request) {
@@ -130,7 +132,7 @@ void free_dummy_request(evhtp_request_t* req) {
   evbuffer_free(req->buffer_in);
   evbuffer_free(req->buffer_out);
 
-  free_dummy_conn(req->conn);
+  // free_dummy_conn(req->conn);
   event_base_free(req->htp->evbase);
   evhtp_free(req->htp);
   delete req->uri->path;

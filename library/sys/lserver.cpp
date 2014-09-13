@@ -104,7 +104,6 @@ void processRequest(evhtp_request_t* request, void* arg) {
 
   evhtp_request_pause(request);
   LServer::serveRequest(ctrlHandler, request);
-  evhtp_request_resume(request);
 }
 
 /**
@@ -149,21 +148,14 @@ void LServer::serveRequest(LCtrlHandler ctrlHandler, pReq request) {
     ((*pCtrl).*pHandler)();
 
     // FIXME: result not sent after promises are executed
-    pCtrl->execPromises();
+    if (!pCtrl->isAsync()) {
 
-    // put the output of res into the request object and finish off
-    auto& res = pCtrl->res();
-    if (res.isModified()) {
+      // put the output of res into the request object and finish off
+      auto& res = pCtrl->res();
 
-      evbuffer_add(request->buffer_out, res.getContent(), res.contentSize());
+    } else {
 
-      evhtp_headers_add_header(
-        request->headers_out,
-        evhtp_header_new("Content-Type", "text/html", 0, 0)
-      );
     }
-
-    evhtp_send_reply(request, res.status());
 
   // caught some runtime error, probably invalid routes
   // TODO: have a separate exceptiont type

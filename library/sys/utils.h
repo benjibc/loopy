@@ -19,6 +19,8 @@
 #define LIBRARY_SYS_UTILS_H_
 
 #include <evhtp.h>
+#include <iostream>
+#include <unistd.h>
 #include "../threadlocal.h"
 
 namespace loopy {
@@ -132,9 +134,14 @@ evhtp_request_t * new_dummy_request() {
   evhtp_request_t * req;
   
   evhtp_connection_t* conn = new_dummy_conn(htp);
-
   conn->thread = evthr_new(dummyInitializeThread, (void*)&T::initThread);
-  evthr_start(conn->thread);
+  int result = evthr_start(conn->thread);
+  // FIXME: it seems to me that the compiler reordered the place where 
+  // pthread_create is called, so yield control here and trick the OS into
+  // creating the thread. Not the right way of doing things. But why does
+  // the callback for pthread_create not get called
+  std::cout << "Sleeping to wait for the thread. FIXME!!" << std::endl;
+  sleep(1);
 
   evhtp_uri_t * uri = new evhtp_uri_t;
   uri->path = new evhtp_path_t;
