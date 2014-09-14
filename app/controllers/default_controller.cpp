@@ -63,10 +63,14 @@ void DefaultController::AsyncHello() {
 // endpoint to check the number of visitors
 void DefaultController::Dashboard() {
   async(redis->get("visitor_count"), [this] (redisReply* reply) {
-
-    std::string str = "number of visitors ";
-    str += reply->str;
-    res_.send(L_OK, str);
+    if (reply->type == REDIS_REPLY_NIL) {
+      std::string str = "no one ha hit AsyncHello yet";
+      res_.send(L_OK, str);
+    } else {
+      std::string str = "number of visitors ";
+      str += reply->str;
+      res_.send(L_OK, str);
+    }
   });
 }
 

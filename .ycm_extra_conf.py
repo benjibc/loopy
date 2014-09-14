@@ -27,6 +27,7 @@ flags = [
     # This path will only work on OS X, but extra paths that don't exist are not
     # harmful
     '-I', './library/third_party/include',
+    '-I', './drivers/third_party/hiredis',
     '-I', './library/'
 ]
 
