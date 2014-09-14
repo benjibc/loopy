@@ -1,3 +1,6 @@
+cd loopy-redis
+git checkout master
+cd ..
 cd ./third_party/hiredis
 make
 cd ..
