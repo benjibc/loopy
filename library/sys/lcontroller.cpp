@@ -29,11 +29,11 @@ namespace loopy {
 
 LController::LController(pReq req)
   : thread_(getRequestThread(req)),
-    evbase_(thread_ ? evthr_get_base(thread_) : nullptr),
     threadLocal_(thread_ ?
       static_cast<ThreadLocal*>(evthr_get_aux(thread_)): nullptr),
     req_(req),
-    res_(req, threadLocal_)
+    res_(req, threadLocal_),
+    evbase_(thread_ ? evthr_get_base(thread_) : nullptr)
 {}
 void LController::next(
   const char* method,
@@ -116,6 +116,9 @@ void free_dummy_request(evhtp_request_t* req) {
   // free_dummy_conn(req->conn);
   event_base_free(req->htp->evbase);
   evhtp_free(req->htp);
+  delete[] req->uri->path->full;
+  delete[] req->uri->path->file;
+  delete[] req->uri->path->path;
   delete req->uri->path;
   delete req->uri;
   delete req;

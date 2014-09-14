@@ -17,6 +17,7 @@
 // SOFTWARE.
 #include <iostream>
 #include "./lres.h"
+#include "./lcontroller.h"
 
 namespace loopy {
 
@@ -24,8 +25,8 @@ LRes::LRes(pReq request, const ThreadLocal* threadLocal)
   : _code(L_OK),
     _subroutine(false),
     _request(request),
-    _templateParams(new TemplateParams(request->uri->path->full)),
-    _threadLocal(threadLocal)
+    _threadLocal(threadLocal),
+    _templateParams(new TemplateParams(request->uri->path->full))
 {}
 
 void LRes::send(HTTP_STATUS_CODE code, std::string& content) {
@@ -41,8 +42,8 @@ void LRes::send(HTTP_STATUS_CODE code, std::string& content) {
   }
   evhtp_send_reply(_request, status());
   evhtp_request_resume(_request);
-
-  delete _request->cbarg;
+  // request reaches end of life
+  delete static_cast<LController*>(_request->cbarg);
 };
 
 void LRes::send(std::string& content) {

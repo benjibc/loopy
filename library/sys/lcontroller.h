@@ -70,18 +70,17 @@ class LController {
   pReq  rawReq();
 
  protected:
+  /// thread variable
+  evthr_t* thread_;
+  /// thread local variable
+  ThreadLocal* threadLocal_;
   /// request variable for the controller
   LReq req_;
   /// response variable for the controller
   LRes res_;
 
-  /// thread variable
-  evthr_t* thread_;
   /// event base
   evbase_t* evbase_;
-
-  /// thread local variable
-  ThreadLocal* threadLocal_;
 
  private:
   /// an array of promises initiated by the user
@@ -119,9 +118,16 @@ evhtp_request_t * new_dummy_request(LController* ctrllr) {
 
   evhtp_uri_t * uri = new evhtp_uri_t;
   uri->path = new evhtp_path_t;
-  uri->path->full = "/";
-  uri->path->file = "/";
-  uri->path->path = "/";
+  uri->path->full = new char[2];
+  uri->path->full[0] = '/';
+  uri->path->full[1] = '\0';
+  uri->path->file = new char[2];
+  uri->path->file[0] = '/';
+  uri->path->file[1] = '\0';
+  uri->path->path = new char[2];
+  uri->path->path[0] = '/';
+  uri->path->path[1] = '\0';
+
 
   if (!(req = new evhtp_request_t)) {
     return nullptr;
