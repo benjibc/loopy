@@ -58,6 +58,7 @@ void LServer::run() {
   // initialize the threads
   evhtp_use_threads(_htp.get(), initializeThread, _num_threads, NULL);
 
+
   // bind the sockets
   if (evhtp_bind_socket(_htp.get(), _addr.c_str(), _port, _backlog) < 0) {
     std::cerr << "Could not bind socket: " << strerror(errno) << std::endl;
@@ -121,6 +122,11 @@ void initializeThread(evhtp_t * htp, evthr_t * thread, void* arg) {
   // stopped, server shouldve died anyways
   ThreadLocal* threadLocal = new ThreadLocal();
   evthr_set_aux(thread, threadLocal);
+  auto& server = LServer::getInstance();
+  auto& handlers = server.getThreadInitializers();
+  for (auto& handler: handlers) {
+    handler(thread);
+  }
 }
 
 LServer& LServer::getInstance(
@@ -141,20 +147,18 @@ void LServer::serveRequest(LCtrlHandler ctrlHandler, pReq request) {
   try {
 
     ctrllerFactoryFunc factory = std::get<0>(ctrlHandler);
-    std::shared_ptr<LController> pCtrl((*factory)(request));
+    LController* pCtrl((*factory)(request));
     LHandler pHandler = std::get<1>(ctrlHandler);
+
+    // replace the callback argument of request to the controller, so
+    // when the request finished processing, the controller can be deleted
+    request->cbarg = static_cast<void*>(pCtrl);
 
     // execute the request
     ((*pCtrl).*pHandler)();
-
-    // FIXME: result not sent after promises are executed
-    if (!pCtrl->isAsync()) {
-
-      // put the output of res into the request object and finish off
-      auto& res = pCtrl->res();
-
-    } else {
-
+    
+    if (pCtrl->isAsync()) {
+      pCtrl->execPromises();
     }
 
   // caught some runtime error, probably invalid routes
@@ -166,6 +170,7 @@ void LServer::serveRequest(LCtrlHandler ctrlHandler, pReq request) {
     std::string message = e.what();
     evbuffer_add(request->buffer_out, message.c_str(), message.size());
     evhtp_send_reply(request, L_SERVER_ERROR);
+    evhtp_request_resume(request);
   }
 }
 

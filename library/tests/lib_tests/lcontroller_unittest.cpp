@@ -88,7 +88,7 @@ TEST(ControllerInit, ControllerInitializedWithDummyRequest) {
   delete controller;
 }
 
-// make sure when requesst is a nullptr, we can still handle the result properly
+// make sure dummy request can be used to test controllers
 TEST(ControllerInit, TestAsyncResponseWithDummyRequest) {
   auto factory = [] (pReq req) -> LController* {
     return new DefaultController(req);

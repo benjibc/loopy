@@ -23,6 +23,9 @@
 #include <unistd.h>
 #include "../threadlocal.h"
 
+#define DEBUG(msg) (std::cout << "file " << __FILE__ << " line " << __LINE__ << ":" << \
+                  msg <<  std::endl);
+
 namespace loopy {
 
 typedef evhtp_request_t* pReq;
@@ -124,48 +127,6 @@ evhtp_connection_t * new_dummy_conn(evhtp_t* htp);
 
 void dummyInitializeThread(evthr_t * thread, void* arg);
 
-// helper function to make and free dummy requests
-template<typename T>
-evhtp_request_t * new_dummy_request() {
-
-  evbase_t * evbase = event_base_new();
-  evhtp_t  * htp    = evhtp_new(evbase, NULL);
-
-  evhtp_request_t * req;
-  
-  evhtp_connection_t* conn = new_dummy_conn(htp);
-  conn->thread = evthr_new(dummyInitializeThread, (void*)&T::initThread);
-  int result = evthr_start(conn->thread);
-  // FIXME: it seems to me that the compiler reordered the place where 
-  // pthread_create is called, so yield control here and trick the OS into
-  // creating the thread. Not the right way of doing things. But why does
-  // the callback for pthread_create not get called
-  std::cout << "Sleeping to wait for the thread. FIXME!!" << std::endl;
-  sleep(1);
-
-  evhtp_uri_t * uri = new evhtp_uri_t;
-  uri->path = new evhtp_path_t;
-  uri->path->full = "/";
-  uri->path->file = "/";
-  uri->path->path = "/";
-
-  if (!(req = new evhtp_request_t)) {
-    return nullptr;
-  }
-  
-  req->conn = conn;
-  req->htp = htp;
-  req->uri = uri;
-  req->status = EVHTP_RES_OK;
-  req->buffer_in = evbuffer_new();
-  req->buffer_out = evbuffer_new();
-  req->headers_in = new evhtp_headers_t;
-  req->headers_out = new evhtp_headers_t;
-  TAILQ_INIT(req->headers_in);
-  TAILQ_INIT(req->headers_out);
-  return req;
-}
-void free_dummy_request(evhtp_request_t* req);
 
 }  // namespace loopy
 

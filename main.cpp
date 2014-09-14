@@ -41,6 +41,9 @@ main() {
   // a dedicated section for complex hello
   server.get("/async/hi", &DefaultController::AsyncHello);
 
+  // a dedicated section for complex hello
+  server.get("/dashboard", &DefaultController::Dashboard);
+
   // default handler when there is no response to be found
   server.setHandlerFor404(&DefaultController::FileNotFound);
 

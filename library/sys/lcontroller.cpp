@@ -28,12 +28,12 @@
 namespace loopy {
 
 LController::LController(pReq req)
-  : req_(req),
-    res_(req),
-    thread_(getRequestThread(req)),
+  : thread_(getRequestThread(req)),
     evbase_(thread_ ? evthr_get_base(thread_) : nullptr),
-    threadLocal_(thread_ ? 
-      static_cast<ThreadLocal*>(evthr_get_aux(thread_)): nullptr)
+    threadLocal_(thread_ ?
+      static_cast<ThreadLocal*>(evthr_get_aux(thread_)): nullptr),
+    req_(req),
+    res_(req, threadLocal_)
 {}
 void LController::next(
   const char* method,
@@ -90,7 +90,7 @@ pReq LController::rawReq() {
 }
 
 void LController::execPromises() {
-  for(auto& promise: promises) {
+  for (auto& promise: promises) {
     promise->initTrigger();
   }
 }
@@ -98,5 +98,28 @@ void LController::execPromises() {
 bool LController::isAsync() const {
   return promises.size() > 0;
 }
+
+void free_dummy_request(evhtp_request_t* req) {
+  if (req == nullptr) {
+    return;
+  }
+  if (req->headers_in != nullptr) {
+    delete req->headers_in;
+  }
+  if (req->headers_out != nullptr) {
+    delete req->headers_out;
+  }
+
+  evbuffer_free(req->buffer_in);
+  evbuffer_free(req->buffer_out);
+
+  // free_dummy_conn(req->conn);
+  event_base_free(req->htp->evbase);
+  evhtp_free(req->htp);
+  delete req->uri->path;
+  delete req->uri;
+  delete req;
+}
+
 
 } // namespace loopy

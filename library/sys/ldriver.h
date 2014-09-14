@@ -11,7 +11,8 @@ namespace loopy {
 class LDriver {
  public:
   explicit LDriver(evthr_t* thread)
-    : thread_(thread)
+    : thread_(thread),
+      evbase_(thread_ ? evthr_get_base(thread_) : nullptr)
   {}
 
   virtual void DBConnect() = 0;

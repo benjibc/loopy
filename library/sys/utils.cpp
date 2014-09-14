@@ -15,8 +15,8 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-#include "./utils.h"
 #include "../threadlocal.h"
+#include "./utils.h"
 #include <iostream>
 
 namespace loopy {
@@ -116,28 +116,6 @@ void free_dummy_conn(evhtp_connection_t* conn) {
   delete local;
   evthr_free(conn->thread);
   delete conn;
-}
-
-void free_dummy_request(evhtp_request_t* req) {
-  if (req == nullptr) {
-    return;
-  }
-  if (req->headers_in != nullptr) {
-    delete req->headers_in;
-  }
-  if (req->headers_out != nullptr) {
-    delete req->headers_out;
-  }
-
-  evbuffer_free(req->buffer_in);
-  evbuffer_free(req->buffer_out);
-
-  // free_dummy_conn(req->conn);
-  event_base_free(req->htp->evbase);
-  evhtp_free(req->htp);
-  delete req->uri->path;
-  delete req->uri;
-  delete req;
 }
 
 } // namespace loopy

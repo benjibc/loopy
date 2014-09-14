@@ -15,7 +15,7 @@ OBJS=$(addprefix $(TGT)/, $(notdir $(SOURCES:.cpp=.o)))
 CFLAGS=-Wall -I./library/third_party/include -I./ -std=c++11
 LIBS=-lctemplate -levhtp -lpthread -levent -lhiredis
 
-LPATH= -L./library/third_party/lib
+LPATH= -L./library/third_party/lib -L./drivers/third_party/lib
 
 all: server 
 
@@ -47,7 +47,7 @@ server: $(OBJS)
 	$(CC) $(CFLAGS) $(LPATH) $(OBJS) $(LIBS) -o loopy.bin main.cpp 
 
 run: all
-	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./library/third_party/lib; export LD_LIBRARY_PATH; ./loopy.bin
+	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./library/third_party/lib:./drivers/third_party/lib; export LD_LIBRARY_PATH; ./loopy.bin
 
 init_repo:
 	cd library && sh fetch_libs.sh
@@ -77,7 +77,6 @@ GTEST_DIR = ./library/third_party/googletest/
 
 # Where to find user code.
 USER_DIR = ./app/tests
-LPATH= -L./library/third_party/lib
 
 SRC=./library/sys/
 T_APPSRC=./app/*
@@ -144,4 +143,4 @@ unittest: $(T_OBJS) gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LPATH)  $^ $(LIBS) -o $@.bin
 
 test: unittest
-	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./library/third_party/lib; export LD_LIBRARY_PATH; ./unittest.bin
+	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./library/third_party/lib:./drivers/third_party/lib; export LD_LIBRARY_PATH; ./unittest.bin

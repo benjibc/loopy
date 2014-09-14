@@ -20,11 +20,12 @@
 
 namespace loopy {
 
-LRes::LRes(pReq request)
+LRes::LRes(pReq request, const ThreadLocal* threadLocal)
   : _code(L_OK),
     _subroutine(false),
     _request(request),
-    _templateParams(new TemplateParams(request->uri->path->full))
+    _templateParams(new TemplateParams(request->uri->path->full)),
+    _threadLocal(threadLocal)
 {}
 
 void LRes::send(HTTP_STATUS_CODE code, std::string& content) {
@@ -32,15 +33,16 @@ void LRes::send(HTTP_STATUS_CODE code, std::string& content) {
   _code = code; 
   if (this->isModified()) {
 
-    evbuffer_add(_request->buffer_out, res.getContent(), res.contentSize());
-
+    evbuffer_add(_request->buffer_out, getContent(), contentSize());
     evhtp_headers_add_header(
-      request->headers_out,
+      _request->headers_out,
       evhtp_header_new("Content-Type", "text/html", 0, 0)
     );
   }
-  evhtp_send_reply(_request, res.status());
+  evhtp_send_reply(_request, status());
   evhtp_request_resume(_request);
+
+  delete _request->cbarg;
 };
 
 void LRes::send(std::string& content) {
@@ -92,6 +94,7 @@ void LRes::render(HTTP_STATUS_CODE code, std::string& filename) {
   } else {
     _includeFilename = "./app/views/" + filename;
   }
+  send(L_OK, _output);
 }
 
 LRes::TemplateParams* LRes::templateParams() {

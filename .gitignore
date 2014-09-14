@@ -6,6 +6,7 @@
 
 # Compiled Dynamic libraries
 *.so
+*.so.*
 *.dylib
 *.dll
 
@@ -21,8 +22,6 @@
 *.app
 *.bin
 
-# ycm files
-.ycm*
 # vim files
 *.swp
 # third party generated files

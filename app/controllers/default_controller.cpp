@@ -9,10 +9,10 @@ namespace loopy {
 DefaultController::DefaultController(pReq req)
   : LController(req),
     name("Benny"),
-    redis(nullptr)
+    redis(static_cast<LRedis*>(threadLocal_->getDriver("LRedis")))
 {}
 
-void DefaultController::initThread(evthr_t* thread) const {
+void DefaultController::initThread(evthr_t* thread) {
   auto* threadLocal = static_cast<ThreadLocal*>(evthr_get_aux(thread));
   threadLocal->attachDriver(new LRedis(thread, "0.0.0.0", 6379));
 }
@@ -52,8 +52,18 @@ void DefaultController::FileNotFound() {
 // uses queryParam from the user. Request the endpoint in the following format
 // /complex/hello?id=2&name=foobar
 void DefaultController::AsyncHello() {
-  async(redis->set("hello", "hi"), [this] (redisReply* reply) {
+  async(redis->incr("visitor_count"), [this] (redisReply* reply) {
     std::string str = "redis has finished";
+    res_.send(L_OK, str);
+  });
+}
+
+// endpoint to check the number of visitors
+void DefaultController::Dashboard() {
+  async(redis->get("visitor_count"), [this] (redisReply* reply) {
+
+    std::string str = "number of visitors ";
+    str += reply->str;
     res_.send(L_OK, str);
   });
 }

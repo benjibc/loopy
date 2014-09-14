@@ -31,6 +31,9 @@ namespace loopy {
 // typedefs to make code easier to read
 
 class LRouter{
+ public:
+  typedef std::function<void(evthr_t* thread)> threadInitHandle;
+
  private:
   typedef std::unordered_map<std::string, LCtrlHandler> RoutingMap;
   typedef LController*(*ctrllerFactoryFunc)(pReq req);
@@ -68,16 +71,17 @@ class LRouter{
       throw std::runtime_error("handler is a nullptr");
     }
     auto typeKey = std::type_index(typeid(T));
-    auto ctrlFactoryIter = ctrller_factories_.find(typeKey);
+    auto ctrlFactoryIter = _ctrllerFactories.find(typeKey);
 
     // if the factory does not exist in the map, store the factory method into
     // the key
     // and store the pointer; else retrieve the controller pointer
-    if (ctrlFactoryIter == ctrller_factories_.end()) {
+    if (ctrlFactoryIter == _ctrllerFactories.end()) {
       auto factory = [] (pReq req) -> LController* {
         return new T(req);
       };
-      ctrller_factories_[typeKey] = factory;
+      _ctrllerFactories[typeKey] = factory;
+      _threadInitializers.push_back(threadInitHandle(T::initThread));
       return factory;
 
     } else { // key does exist
@@ -98,6 +102,10 @@ class LRouter{
     _routes[key] = std::make_tuple(ctrlFactory, (LHandler) handler);
   }
 
+  const std::vector<threadInitHandle>& getThreadInitializers() const {
+    return _threadInitializers;
+  }
+
  private:
   // typedefs for more readability
 
@@ -105,7 +113,9 @@ class LRouter{
 
   // use of type_index; refer to
   // http://en.cppreference.com/w/cpp/types/type_index
-  std::unordered_map<std::type_index, ctrllerFactoryFunc> ctrller_factories_;
+  std::unordered_map<std::type_index, ctrllerFactoryFunc> _ctrllerFactories;
+
+  std::vector<threadInitHandle> _threadInitializers;
 
   // special handlers
   LCtrlHandler  _404CtrlHandler;

@@ -52,6 +52,11 @@ class LServer {
   static void serveRequest(LCtrlHandler ctrlHandler, pReq req);
   static void invalidControlHandler(LCtrlHandler ctrlHandler);
 
+  const std::vector<typename LRouter::threadInitHandle>&
+  getThreadInitializers() {
+    return _router.getThreadInitializers();
+  }
+
   // list of HTTP Methods to use as routing functions
   template<class T>
   void post(const char* path, void (T::*handler)());

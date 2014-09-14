@@ -18,16 +18,19 @@
 #ifndef LIBRARY_SYS_LPROMISE_H_
 #define LIBRARY_SYS_LPROMISE_H_
 
+#include <iostream>
+#include "library/sys/utils.h"
+
 namespace loopy {
 
 class LPromiseBase {
 
  public:
-   typedef std::function<void(void*)> TriggerType;
-   typedef std::function<void(void*)> CallbackType;
+  typedef std::function<void(void*)> TriggerType;
+  typedef std::function<void(void*)> CallbackType;
 
  public:
-  LPromiseBase(TriggerType trigger)
+  explicit LPromiseBase(TriggerType trigger)
     : trigger_(trigger)
   {}
 
@@ -41,15 +44,15 @@ class LPromiseBase {
 };
 
 /// LPromise takes a trigger, that would take a callback, register with libevent
-/// and make sure the callback is executed once the DB call finishes 
+/// and make sure the callback is executed once the DB call finishes
 template<typename DriverType>
 class LPromise : public LPromiseBase {
 
  private:
-   typedef typename DriverType::ReturnType DBReturnType;
+  typedef typename DriverType::ReturnType DBReturnType;
 
  public:
-  LPromise(LPromiseBase::TriggerType trigger)
+  explicit LPromise(LPromiseBase::TriggerType trigger)
     : LPromiseBase(trigger)
   {}
 
@@ -65,7 +68,7 @@ class LPromise : public LPromiseBase {
       }
     );
   }
-  
+
   void execute() {
     callback_();
   }

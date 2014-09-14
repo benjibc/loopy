@@ -16,11 +16,12 @@ class DefaultController: public LController {
   void Hello();
   void FileNotFound();
   void AsyncHello();
+  void Dashboard();
   void ComplexHello();
   void SubComplexHello();
   void SubComplexHello2();
 
-  void initThread(evthr_t* thread) const override;
+  static void initThread(evthr_t* thread);
 
  private:
   std::string name;
