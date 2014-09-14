@@ -35,6 +35,7 @@ LController::LController(pReq req)
     res_(req, threadLocal_),
     evbase_(thread_ ? evthr_get_base(thread_) : nullptr)
 {}
+
 void LController::next(
   const char* method,
   const char* next,
@@ -64,15 +65,14 @@ void LController::next(
   ctemplate::TemplateDictionary* tParams = res_.templateParams();
   req_.addToCallStack(route);
 
-  res_.subroutine(true);
   ctemplate::TemplateDictionary* dict = tParams->AddIncludeDictionary(templateName);
 
-  res_.swapTemplateParams(dict);
-  LServer::serveRequest(ctrlHandler, req_.rawReq());
-  res_.swapTemplateParams(dict);
+  std::string templateFilename = LServer::serveSubRequest(
+    ctrlHandler,
+    req_.rawReq(),
+    dict
+  );
 
-  res_.subroutine(false);
-  std::string templateFilename = res_.getIncludedTemplateFilename();
   dict->SetFilename(templateFilename);
 }
 

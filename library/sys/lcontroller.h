@@ -69,6 +69,19 @@ class LController {
   /// get the raw libevhtp request object
   pReq  rawReq();
 
+  /// set a controller to be a subroutine
+  void injectSubTemplate(ctemplate::TemplateDictionary* dict) {
+    res_.subroutine(true);
+    // dict is now swapped with the old template inside res. delete
+    // dict would free the old template
+    res_.swapTemplateParams(dict);
+    delete dict;
+  }
+
+  std::string getSubtemplateFilename() const {
+    return res_.getIncludedTemplateFilename();
+  }
+
  protected:
   /// thread variable
   evthr_t* thread_;

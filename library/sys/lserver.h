@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 #include <cstdint>
+#include <vector>
 #include <typeinfo>
 #include "../threadshared.h"
 #include "../threadlocal.h"
@@ -50,6 +51,11 @@ class LServer {
   LCtrlHandler getCtrlHandlerStrict(const char* method, const char* path);
 
   static void serveRequest(LCtrlHandler ctrlHandler, pReq req);
+  static std::string serveSubRequest(
+    LCtrlHandler ctrlHandler,
+    pReq request,
+    ctemplate::TemplateDictionary* dict
+  );
   static void invalidControlHandler(LCtrlHandler ctrlHandler);
 
   const std::vector<typename LRouter::threadInitHandle>&

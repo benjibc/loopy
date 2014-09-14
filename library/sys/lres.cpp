@@ -21,9 +21,9 @@
 
 namespace loopy {
 
-LRes::LRes(pReq request, const ThreadLocal* threadLocal)
+LRes::LRes(pReq request, const ThreadLocal* threadLocal, bool subroutine)
   : _code(L_OK),
-    _subroutine(false),
+    _subroutine(subroutine),
     _request(request),
     _threadLocal(threadLocal),
     _templateParams(new TemplateParams(request->uri->path->full))
@@ -92,10 +92,10 @@ void LRes::render(HTTP_STATUS_CODE code, std::string& filename) {
       _output = e;
       _code = L_SERVER_ERROR;
     }
+    send(L_OK, _output);
   } else {
     _includeFilename = "./app/views/" + filename;
   }
-  send(L_OK, _output);
 }
 
 LRes::TemplateParams* LRes::templateParams() {
@@ -107,7 +107,10 @@ void LRes::subroutine(bool subroutine) {
 }
 
 LRes::~LRes() {
-  delete _templateParams;
+  // only delete subtemplate that you own
+  if (!_subroutine) {
+    delete _templateParams;
+  }
 };
 
 void LRes::swapTemplateParams(LRes::TemplateParams* &dict) {

@@ -174,4 +174,29 @@ void LServer::serveRequest(LCtrlHandler ctrlHandler, pReq request) {
   }
 }
 
+// if we are serving a subroutine and it throws, make sure it's caught
+// in the caller to avoid surprises
+std::string LServer::serveSubRequest(
+  LCtrlHandler ctrlHandler,
+  pReq request,
+  ctemplate::TemplateDictionary* dict
+) {
+  ctrllerFactoryFunc factory = std::get<0>(ctrlHandler);
+  LController* pCtrl((*factory)(request));
+  LHandler pHandler = std::get<1>(ctrlHandler);
+  pCtrl->injectSubTemplate(dict);
+
+  // replace the callback argument of request to the controller, so
+  // when the request finished processing, the controller can be deleted
+  request->cbarg = static_cast<void*>(pCtrl);
+
+  // execute the request
+  ((*pCtrl).*pHandler)();
+
+  if (pCtrl->isAsync()) {
+    pCtrl->execPromises();
+  }
+  return pCtrl->getSubtemplateFilename();
+}
+
 } // namespace loopy

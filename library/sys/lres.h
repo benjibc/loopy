@@ -35,7 +35,7 @@ class LRes{
   typedef ctemplate::TemplateDictionary TemplateParams;
 
  public:
-  LRes(pReq request, const ThreadLocal* threadLocal);
+  LRes(pReq request, const ThreadLocal* threadLocal, bool subroutine = false);
   ~LRes();
 
   // once_off writing with a string content; suitable for all the HTTP

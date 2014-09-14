@@ -48,6 +48,8 @@ server: $(OBJS)
 
 run: all
 	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./library/third_party/lib:./drivers/third_party/lib; export LD_LIBRARY_PATH; ./loopy.bin
+mem_run: all
+	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./library/third_party/lib:./drivers/third_party/lib; export LD_LIBRARY_PATH; valgrind ./loopy.bin
 
 init_repo:
 	cd library && sh fetch_libs.sh

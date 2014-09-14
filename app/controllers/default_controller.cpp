@@ -12,6 +12,8 @@ DefaultController::DefaultController(pReq req)
     redis(static_cast<LRedis*>(threadLocal_->getDriver("LRedis")))
 {}
 
+// a static function that you must implement. You will get a thread
+// variable, and you can attach the database driver there
 void DefaultController::initThread(evthr_t* thread) {
   auto* threadLocal = static_cast<ThreadLocal*>(evthr_get_aux(thread));
   threadLocal->attachDriver(new LRedis(thread, "0.0.0.0", 6379));
@@ -110,6 +112,7 @@ void DefaultController::SubComplexHello2() {
   auto* tParams = res_.templateParams();
 
   tParams->SetValue("USERNAME", name);
+  res_.render("default/section2.tpl");
 }
 
 }  // namespace loopy
