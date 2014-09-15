@@ -24,5 +24,6 @@
 
 # vim files
 *.swp
+*.pyc
 # third party generated files
 library/third_party/*
