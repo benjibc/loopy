@@ -13,7 +13,7 @@ SOURCES+=./library/threadlocal.cpp ./library/threadshared.cpp
 OBJS=$(addprefix $(TGT)/, $(notdir $(SOURCES:.cpp=.o)))
 
 CFLAGS=-Wall -I./library/third_party/include -I./ -std=c++11
-LIBS=-lctemplate -levhtp -lpthread -levent -lhiredis
+# LIBS=-lctemplate -levhtp -lpthread -levent -lhiredis
 
 LPATH= -L./library/third_party/lib -L./drivers/third_party/lib
 
@@ -47,9 +47,9 @@ server: $(OBJS)
 	$(CC) $(CFLAGS) $(LPATH) $(OBJS) $(LIBS) -o loopy.bin main.cpp 
 
 run: all
-	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./library/third_party/lib:./drivers/third_party/lib; export LD_LIBRARY_PATH; ./loopy.bin
+	./loopy.bin
 mem_run: all
-	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./library/third_party/lib:./drivers/third_party/lib; export LD_LIBRARY_PATH; valgrind ./loopy.bin
+	valgrind ./loopy.bin
 
 init_repo:
 	cd library && sh fetch_libs.sh
@@ -83,7 +83,9 @@ USER_DIR = ./app/tests
 SRC=./library/sys/
 T_APPSRC=./app/*
 T_APPSRC2=./app/*/*
-LIBS=-lctemplate -levhtp -lpthread -levent -lhiredis
+HIREDIS_OBJ=./drivers/third_party/hiredis/*.o
+# LIBS=-lctemplate -levhtp -lpthread -levent -lhiredis
+LIBS=./library/third_party/lib/libctemplate.a ./library/third_party/lib/libevhtp.a $(HIREDIS_OBJ) -lpthread -levent 
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that

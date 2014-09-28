@@ -16,3 +16,6 @@
 [submodule "drivers/loopy-redis"]
 	path = drivers/loopy-redis
 	url = git@github.com:benjibc/loopy-redis.git
+[submodule "library/third_party/folly"]
+	path = library/third_party/folly
+	url = git@github.com:facebook/folly.git
