@@ -17,7 +17,6 @@ using loopy::DefaultController;
 
 int
 main() {
-
   // do your initialization for the shared thread object here
   std::string str = "Example app";
   auto sharedObj = ThreadShared::getInstance();
@@ -40,6 +39,9 @@ main() {
 
   // a dedicated section for complex hello
   server.get("/async/hi", &DefaultController::AsyncHello);
+
+  // controller with paralell database execution example
+  server.get("/parallel/hi", &DefaultController::ParallelHello);
 
   // a dedicated section for complex hello
   server.get("/dashboard", &DefaultController::Dashboard);

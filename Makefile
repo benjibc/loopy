@@ -1,5 +1,4 @@
 CC=clang++
-
 SRC=./library/sys
 CTRL_SRC=./app/controllers
 CTRL_SRC2+=./app/controllers/*
@@ -94,7 +93,7 @@ CPPFLAGS = -isystem $(GTEST_DIR)/include
 
 # Flags passed to the C++ compiler.
 CXXFLAGS += -g -Wall -Wextra -pthread 
-CXXFLAGS += -I./library/third_party/include -I./ -std=c++11 
+CXXFLAGS += -I./library/third_party/include -I./ -std=c++11
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.

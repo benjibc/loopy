@@ -51,17 +51,34 @@ void DefaultController::FileNotFound() {
 //////////////////////////////////////////////////////////////////////////////
 // async handler that renders a master template which includes a subtemplate
 // uses queryParam from the user. Request the endpoint in the following format
-// /complex/hello?id=2&name=foobar
 void DefaultController::AsyncHello() {
-  async(redis->incr("visitor_count"), [this] (redisReply* reply) {
+  async(redis->incr("visitor_count"), [this] (LRedisData* reply) {
     std::string str = "redis has finished";
+    _res.send(L_OK, str);
+  });
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// example async handler for parallel db request 
+void DefaultController::ParallelHello() {
+  parallel(make_tuple(
+    redis->get("visitor_count"),
+    redis->get("dash_count")
+  ),
+  [this] (std::shared_ptr<std::tuple<LRedisData*, LRedisData*>> reply ) {
+    std::cout << "inside user callback" << std::endl;
+    std::string str = "both redis has finished";
+    str += "visitor count ";
+    str += std::get<0>(*reply)->str;
+    str += "dash count ";
+    str += std::get<1>(*reply)->str;
     _res.send(L_OK, str);
   });
 }
 
 // endpoint to check the number of visitors
 void DefaultController::Dashboard() {
-  async(redis->get("visitor_count"), [this] (redisReply* reply) {
+  async(redis->get("visitor_count"), [this] (LRedisData* reply) {
     if (reply->type == REDIS_REPLY_NIL) {
       std::string str = "no one ha hit AsyncHello yet";
       _res.send(L_OK, str);
@@ -88,6 +105,9 @@ void DefaultController::ComplexHello() {
     next("GET", "/section/hello", "TEMPLATE_1");
   }
   next("INTERN", "/section/hello2", "TEMPLATE_2");
+  async(redis->incr("dash_count"), [](LRedisData* reply) {
+    return;
+  });
 
   // try and see what happens if you invoke the wrong path
   // next("INTERN", "/section2/hello", req, res);

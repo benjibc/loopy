@@ -20,6 +20,9 @@
 
 #include "library/sys/utils.h"
 
+// implements a very basic promise type. It is not as generic as folly/wangle
+// because the execution never goes into a different thread, so a lot of the
+// extra features in folly/wangle is not necessary
 namespace loopy {
 
 class LPromiseBase {
@@ -37,6 +40,10 @@ class LPromiseBase {
 
   virtual void initTrigger() = 0;
 
+  CallbackType callback() const {
+    return callback_;
+  }
+
  protected:
   TriggerType trigger_;
   CallbackType callback_;
@@ -47,7 +54,7 @@ class LPromiseBase {
 template<typename DriverType>
 class LPromise : public LPromiseBase {
 
- private:
+ public:
   typedef typename DriverType::ReturnType DBReturnType;
 
  public:
@@ -63,13 +70,26 @@ class LPromise : public LPromiseBase {
   void then(nextLambdaType onEnd) {
     callback_ = std::function<void(void* data)>(
       [onEnd](void* data) {
-        onEnd(static_cast<DBReturnType*>(data));
+        onEnd(static_cast<DBReturnType>(data));
       }
     );
   }
+};
 
-  void execute() {
-    callback_();
+// specialization with void, basically calls the triggers and have no callback
+template<>
+class LPromise<void> : public LPromiseBase {
+
+ public:
+  typedef void DBReturnType;
+
+ public:
+  explicit LPromise(LPromiseBase::TriggerType trigger)
+    : LPromiseBase(trigger)
+  {}
+
+  void initTrigger() {
+    trigger_(nullptr);
   }
 };
 

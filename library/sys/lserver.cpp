@@ -158,6 +158,7 @@ void LServer::serveRequest(LCtrlHandler ctrlHandler, pReq request) {
     ((*pCtrl).*pHandler)();
 
     if (pCtrl->isAsync()) {
+      std::cout << "executing promise" << std::endl;
       pCtrl->execPromise();
     }
 

@@ -20,6 +20,7 @@ class DefaultController: public LController {
   void ComplexHello();
   void SubComplexHello();
   void SubComplexHello2();
+  void ParallelHello();
 
   static void initThread(evthr_t* thread);
 

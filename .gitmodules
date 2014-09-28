@@ -1,21 +1,28 @@
 [submodule "library/third_party/ctemplate"]
 	path = library/third_party/ctemplate
 	url = git@github.com:benjibc/ctemplate.git
+  branch = master
 [submodule "library/third_party/libevhtp"]
 	path = library/third_party/libevhtp
 	url = https://github.com/ellzey/libevhtp.git
+  branch = master
 [submodule "library/third_party/googletest"]
 	path = library/third_party/googletest
 	url = git@github.com:svn2github/googletest.git
+  branch = master
 [submodule "drivers/third_party/hiredis"]
 	path = drivers/third_party/hiredis
 	url = git@github.com:redis/hiredis.git
+  branch = master
 [submodule "drivers/async/loopy-redis"]
 	path = drivers/async/loopy-redis
 	url = git@github.com:benjibc/loopy-redis.git
+  branch = master
 [submodule "drivers/loopy-redis"]
 	path = drivers/loopy-redis
 	url = git@github.com:benjibc/loopy-redis.git
+  branch = master
 [submodule "library/third_party/folly"]
 	path = library/third_party/folly
 	url = git@github.com:facebook/folly.git
+  branch = master

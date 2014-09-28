@@ -28,29 +28,22 @@
 namespace loopy {
 
 LController::LController(pReq req)
-  : _thread(getRequestThread(req)),
-    _threadLocal(_thread?
-      static_cast<ThreadLocal*>(evthr_get_aux(_thread)): nullptr),
-    _req(req),
-    _res(req, _threadLocal),
-    _evbase(_thread ? evthr_get_base(_thread) : nullptr),
-    _promise(nullptr)
-{}
+    : _thread(getRequestThread(req)),
+      _threadLocal(_thread ? static_cast<ThreadLocal *>(evthr_get_aux(_thread))
+                           : nullptr),
+      _req(req), _res(req, _threadLocal),
+      _evbase(_thread ? evthr_get_base(_thread) : nullptr), _promise(nullptr) {}
 
-void LController::next(
-  const char* method,
-  const char* next,
-  const char* templateName
-) {
-  LServer& server = LServer::getInstance();
+void LController::next(const char *method, const char *next,
+                       const char *templateName) {
+  LServer &server = LServer::getInstance();
   auto ctrlHandler = server.getCtrlHandlerStrict(method, next);
 
   std::string route = std::string(method) + " " + next;
 
   if (invalidControlHandler(ctrlHandler)) {
-    std::string reason = std::string("Invalid route:")
-                         + route
-                         + "\nRoute Stack:\n";
+    std::string reason =
+        std::string("Invalid route:") + route + "\nRoute Stack:\n";
 
     // populate the routing stack so when an error occurs, the user will be
     // able to see it
@@ -63,42 +56,32 @@ void LController::next(
   }
 
   // now we know the controller is valid, serve the request
-  ctemplate::TemplateDictionary* tParams = _res.templateParams();
+  ctemplate::TemplateDictionary *tParams = _res.templateParams();
   _req.addToCallStack(route);
 
-  ctemplate::TemplateDictionary* dict = tParams->AddIncludeDictionary(templateName);
+  ctemplate::TemplateDictionary *dict =
+      tParams->AddIncludeDictionary(templateName);
 
-  std::string templateFilename = LServer::serveSubRequest(
-    ctrlHandler,
-    _req.rawReq(),
-    dict
-  );
+  std::string templateFilename =
+      LServer::serveSubRequest(ctrlHandler, _req.rawReq(), dict);
 
   dict->SetFilename(templateFilename);
 }
 
 bool LController::invalidControlHandler(LCtrlHandler ctrlHandler) {
-  return (std::get<0>(ctrlHandler) == nullptr)
-         || (std::get<1>(ctrlHandler) == nullptr);
+  return (std::get<0>(ctrlHandler) == nullptr) ||
+         (std::get<1>(ctrlHandler) == nullptr);
 }
 
-LRes& LController::res() {
-  return _res;
-}
+LRes &LController::res() { return _res; }
 
-pReq LController::rawReq() {
-  return _req.rawReq();
-}
+pReq LController::rawReq() { return _req.rawReq(); }
 
-void LController::execPromise() {
-  _promise->initTrigger();
-}
+void LController::execPromise() { _promise->initTrigger(); }
 
-bool LController::isAsync() const {
-  return _promise.get() != nullptr;
-}
+bool LController::isAsync() const { return _promise.get() != nullptr; }
 
-void free_dummy_request(evhtp_request_t* req) {
+void free_dummy_request(evhtp_request_t *req) {
   if (req == nullptr) {
     return;
   }
@@ -122,6 +105,5 @@ void free_dummy_request(evhtp_request_t* req) {
   delete req->uri;
   delete req;
 }
-
 
 } // namespace loopy
