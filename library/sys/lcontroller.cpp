@@ -28,12 +28,13 @@
 namespace loopy {
 
 LController::LController(pReq req)
-  : thread_(getRequestThread(req)),
-    threadLocal_(thread_ ?
-      static_cast<ThreadLocal*>(evthr_get_aux(thread_)): nullptr),
-    req_(req),
-    res_(req, threadLocal_),
-    evbase_(thread_ ? evthr_get_base(thread_) : nullptr)
+  : _thread(getRequestThread(req)),
+    _threadLocal(_thread?
+      static_cast<ThreadLocal*>(evthr_get_aux(_thread)): nullptr),
+    _req(req),
+    _res(req, _threadLocal),
+    _evbase(_thread ? evthr_get_base(_thread) : nullptr),
+    _promise(nullptr)
 {}
 
 void LController::next(
@@ -53,7 +54,7 @@ void LController::next(
 
     // populate the routing stack so when an error occurs, the user will be
     // able to see it
-    auto callStack = req_.callStack();
+    auto callStack = _req.callStack();
     for (auto it = callStack.rbegin(); it != callStack.rend(); it++) {
       reason += *it + "\n";
     }
@@ -62,14 +63,14 @@ void LController::next(
   }
 
   // now we know the controller is valid, serve the request
-  ctemplate::TemplateDictionary* tParams = res_.templateParams();
-  req_.addToCallStack(route);
+  ctemplate::TemplateDictionary* tParams = _res.templateParams();
+  _req.addToCallStack(route);
 
   ctemplate::TemplateDictionary* dict = tParams->AddIncludeDictionary(templateName);
 
   std::string templateFilename = LServer::serveSubRequest(
     ctrlHandler,
-    req_.rawReq(),
+    _req.rawReq(),
     dict
   );
 
@@ -82,21 +83,19 @@ bool LController::invalidControlHandler(LCtrlHandler ctrlHandler) {
 }
 
 LRes& LController::res() {
-  return res_;
+  return _res;
 }
 
 pReq LController::rawReq() {
-  return req_.rawReq();
+  return _req.rawReq();
 }
 
-void LController::execPromises() {
-  for (auto& promise: promises) {
-    promise->initTrigger();
-  }
+void LController::execPromise() {
+  _promise->initTrigger();
 }
 
 bool LController::isAsync() const {
-  return promises.size() > 0;
+  return _promise.get() != nullptr;
 }
 
 void free_dummy_request(evhtp_request_t* req) {

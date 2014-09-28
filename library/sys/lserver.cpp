@@ -156,9 +156,9 @@ void LServer::serveRequest(LCtrlHandler ctrlHandler, pReq request) {
 
     // execute the request
     ((*pCtrl).*pHandler)();
-    
+
     if (pCtrl->isAsync()) {
-      pCtrl->execPromises();
+      pCtrl->execPromise();
     }
 
   // caught some runtime error, probably invalid routes
@@ -194,7 +194,7 @@ std::string LServer::serveSubRequest(
   ((*pCtrl).*pHandler)();
 
   if (pCtrl->isAsync()) {
-    pCtrl->execPromises();
+    pCtrl->execPromise();
   }
   return pCtrl->getSubtemplateFilename();
 }

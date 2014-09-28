@@ -62,7 +62,7 @@ class LController {
   bool isAsync() const;
 
   /// execute the promises contained
-  void execPromises();
+  void execPromise();
 
   /// returns a reference to the response object
   LRes& res();
@@ -71,40 +71,41 @@ class LController {
 
   /// set a controller to be a subroutine
   void injectSubTemplate(ctemplate::TemplateDictionary* dict) {
-    res_.subroutine(true);
+    _res.subroutine(true);
     // dict is now swapped with the old template inside res. delete
     // dict would free the old template
-    res_.swapTemplateParams(dict);
+    _res.swapTemplateParams(dict);
     delete dict;
   }
 
   std::string getSubtemplateFilename() const {
-    return res_.getIncludedTemplateFilename();
+    return _res.getIncludedTemplateFilename();
   }
 
  protected:
   /// thread variable
-  evthr_t* thread_;
+  evthr_t* _thread;
   /// thread local variable
-  ThreadLocal* threadLocal_;
+  ThreadLocal* _threadLocal;
   /// request variable for the controller
-  LReq req_;
+  LReq _req;
   /// response variable for the controller
-  LRes res_;
+  LRes _res;
 
   /// event base
-  evbase_t* evbase_;
+  evbase_t* _evbase;
 
  private:
   /// an array of promises initiated by the user
-  std::vector<std::shared_ptr<LPromiseBase>> promises;
+  std::shared_ptr<LPromiseBase> _promise;
 };
 
 /// just takes the promise and returns it
 template<typename PromisePtrTypes, typename LambdaType>
-void LController::async(PromisePtrTypes promise, LambdaType callback) {
+void
+LController::async(PromisePtrTypes promise, LambdaType callback) {
   promise->then(callback);
-  promises.push_back(promise);
+  _promise = promise;
 }
 
 // helper function to make and free dummy requests
@@ -159,6 +160,7 @@ evhtp_request_t * new_dummy_request(LController* ctrllr) {
   TAILQ_INIT(req->headers_out);
   return req;
 }
+
 void free_dummy_request(evhtp_request_t* req);
 
 } // namespace loopy

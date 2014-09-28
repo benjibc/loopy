@@ -18,7 +18,6 @@
 #ifndef LIBRARY_SYS_LPROMISE_H_
 #define LIBRARY_SYS_LPROMISE_H_
 
-#include <iostream>
 #include "library/sys/utils.h"
 
 namespace loopy {
