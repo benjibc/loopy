@@ -67,7 +67,7 @@ void DefaultController::ParallelHello() {
   ),
   [this] (std::shared_ptr<std::tuple<LRedisData*, LRedisData*>> reply ) {
     std::cout << "inside user callback" << std::endl;
-    std::string str = "both redis has finished";
+    std::string str = "two redis requests have finished ";
     str += "visitor count ";
     str += std::get<0>(*reply)->str;
     str += "dash count ";
